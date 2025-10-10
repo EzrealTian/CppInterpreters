@@ -1,5 +1,5 @@
-#ifndef LOX_SRC_LOX_H_
-#define LOX_SRC_LOX_H_
+#ifndef LOX_CORE_LOX_H_
+#define LOX_CORE_LOX_H_
 
 #include <string>
 
@@ -30,4 +30,4 @@ class Lox {
 
 }  // namespace lox
 
-#endif  // LOX_SRC_LOX_H_
+#endif  // LOX_CORE_LOX_H_

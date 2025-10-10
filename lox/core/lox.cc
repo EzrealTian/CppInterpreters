@@ -4,7 +4,7 @@
 #include <iterator>
 #include <cstdlib>
 
-#include "lox/src/lox.h"
+#include "lox/core/lox.h"
 
 namespace lox {
 

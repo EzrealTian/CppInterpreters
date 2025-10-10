@@ -6,6 +6,7 @@ namespace lox {
 namespace test {
 void testScanner();
 void testTokenType();
+void testPrinter();
 // 未来可以添加更多测试
 // void testParser();
 // void testInterpreter();
@@ -18,6 +19,7 @@ void printUsage(const char* program) {
     std::cout << "  --all           运行所有测试\n";
     std::cout << "  --scanner       测试Scanner（词法分析器）\n";
     std::cout << "  --token-type    测试TokenType转换\n";
+    std::cout << "  --printer       测试表达式打印器\n";
     // std::cout << "  --parser        测试Parser（语法分析器）\n";
     // std::cout << "  --interpreter   测试Interpreter（解释器）\n";
     std::cout << "  --help, -h      显示帮助信息\n";
@@ -37,6 +39,7 @@ int main(int argc, char* argv[]) {
     bool runAll = false;
     bool runScanner = false;
     bool runTokenType = false;
+    bool runPrinter = false;
 
     // 解析命令行参数
     for (int i = 1; i < argc; ++i) {
@@ -51,6 +54,8 @@ int main(int argc, char* argv[]) {
             runScanner = true;
         } else if (arg == "--token-type") {
             runTokenType = true;
+        } else if (arg == "--printer") {
+            runPrinter = true;
         } else {
             std::cout << "❌ 未知选项: " << arg << "\n\n";
             printUsage(argv[0]);
@@ -62,6 +67,7 @@ int main(int argc, char* argv[]) {
     if (runAll) {
         runScanner = true;
         runTokenType = true;
+        runPrinter = true;
     }
 
     std::cout << "🧪 Lox 测试套件\n";
@@ -95,6 +101,20 @@ int main(int argc, char* argv[]) {
             passedCount++;
         } catch (const std::exception& e) {
             std::cout << "❌ TokenType 测试失败: " << e.what() << "\n\n";
+        }
+    }
+
+    // 运行Printer测试
+    if (runPrinter) {
+        testCount++;
+        std::cout << "▶️  运行 Printer 测试...\n";
+        std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        try {
+            lox::test::testPrinter();
+            std::cout << "✅ Printer 测试通过\n\n";
+            passedCount++;
+        } catch (const std::exception& e) {
+            std::cout << "❌ Printer 测试失败: " << e.what() << "\n\n";
         }
     }
 

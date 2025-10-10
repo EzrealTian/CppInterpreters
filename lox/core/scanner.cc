@@ -1,5 +1,5 @@
-#include "lox/src/scanner.h"
-#include "lox/src/lox.h"
+#include "lox/core/scanner.h"
+#include "lox/core/lox.h"
 #include "lox/util/token_type.h"
 
 namespace lox {

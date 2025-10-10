@@ -115,7 +115,7 @@ make VERBOSE=1
 ### 1. 编码
 ```bash
 # 编辑代码...
-vim lox/src/scanner.cc
+vim lox/core/scanner.cc
 ```
 
 ### 2. 编译

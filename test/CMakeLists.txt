@@ -10,7 +10,7 @@ file(GLOB TEST_SOURCES
 
 # 收集lox库源文件（排除main.cc）
 file(GLOB_RECURSE LOX_LIB_SOURCES 
-    "${CMAKE_SOURCE_DIR}/lox/src/*.cc"
+    "${CMAKE_SOURCE_DIR}/lox/core/*.cc"
     "${CMAKE_SOURCE_DIR}/lox/util/*.cc"
 )
 
@@ -31,7 +31,7 @@ add_executable(${TEST_EXECUTABLE_NAME}
 
 # 设置头文件目录
 target_include_directories(${TEST_EXECUTABLE_NAME} PRIVATE 
-    ${CMAKE_SOURCE_DIR}  # 项目根目录，这样可以用 lox/src/xxx.h
+    ${CMAKE_SOURCE_DIR}  # 项目根目录，这样可以用 lox/core/xxx.h
 )
 
 # 编译器选项

@@ -1,7 +1,7 @@
-#ifndef LOX_SRC_SCANNER_H_
-#define LOX_SRC_SCANNER_H_
+#ifndef LOX_CORE_SCANNER_H_
+#define LOX_CORE_SCANNER_H_
 
-#include "lox/src/token.h"
+#include "lox/core/token.h"
 
 #include <string>
 #include <vector>
@@ -73,4 +73,4 @@ class Scanner {
 
 }  // namespace lox
 
-#endif  // LOX_SRC_SCANNER_H_
+#endif  // LOX_CORE_SCANNER_H_

@@ -2,8 +2,9 @@
 #include <string>
 #include <vector>
 #include <cassert>
-#include "lox/src/scanner.h"
-#include "lox/src/token.h"
+
+#include "lox/core/scanner.h"
+#include "lox/core/token.h"
 #include "lox/util/token_type.h"
 
 namespace lox {

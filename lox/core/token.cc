@@ -1,4 +1,4 @@
-#include "lox/src/token.h"
+#include "lox/core/token.h"
 #include "lox/util/token_type.h"
 #include "lox/util/lox_object.h"
 

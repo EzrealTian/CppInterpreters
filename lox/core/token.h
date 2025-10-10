@@ -1,5 +1,5 @@
-#ifndef LOX_SRC_TOKEN_H_
-#define LOX_SRC_TOKEN_H_
+#ifndef LOX_CORE_TOKEN_H_
+#define LOX_CORE_TOKEN_H_
 
 #include <string>
 
@@ -16,6 +16,8 @@ class Token {
 
   std::string toString() const;
 
+  std::string lexeme() const { return lexeme_; }
+
  private:
   TokenType type_;
   std::string lexeme_;
@@ -25,4 +27,4 @@ class Token {
 
 }  // namespace lox
 
-#endif  // LOX_SRC_TOKEN_H_
+#endif  // LOX_CORE_TOKEN_H_
