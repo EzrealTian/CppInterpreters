@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "lox/core/token.h"
+
 namespace lox {
 
 class Lox {
@@ -16,6 +18,7 @@ class Lox {
   void RunPrompt();
 
   void error(int line, const std::string& message);
+  void error(Token token, const std::string& message);
 
  private:
   Lox() = default;

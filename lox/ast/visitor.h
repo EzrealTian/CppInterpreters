@@ -3,19 +3,19 @@
 
 namespace lox {
 
-class Binary;
-class Unary;
-class Literal;
-class Grouping;
+class BinaryExpr;
+class UnaryExpr;
+class LiteralExpr;
+class GroupingExpr;
 
 class Visitor {
  public:
   virtual ~Visitor() = default;
 
-  virtual void visit(Binary& binary) = 0;
-  virtual void visit(Unary& unary) = 0;
-  virtual void visit(Literal& literal) = 0;
-  virtual void visit(Grouping& grouping) = 0;
+  virtual void visit(BinaryExpr& binary) = 0;
+  virtual void visit(UnaryExpr& unary) = 0;
+  virtual void visit(LiteralExpr& literal) = 0;
+  virtual void visit(GroupingExpr& grouping) = 0;
 };
 
 }  // namespace lox

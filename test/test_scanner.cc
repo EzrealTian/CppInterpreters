@@ -26,10 +26,10 @@ void testCase(const std::string& name, const std::string& source,
     
     // 检查每个token的类型
     for (size_t i = 0; i < expectedTypes.size(); ++i) {
-        if (tokens[i].toString().find(tokenTypeToString(expectedTypes[i])) == std::string::npos) {
+        if (tokens[i].ToString().find(tokenTypeToString(expectedTypes[i])) == std::string::npos) {
             std::cout << "    ❌ 失败: 位置 " << i << " 期望 " 
                       << tokenTypeToString(expectedTypes[i]) 
-                      << "，实际得到 " << tokens[i].toString() << "\n";
+                      << "，实际得到 " << tokens[i].ToString() << "\n";
             return;
         }
     }

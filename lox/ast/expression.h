@@ -19,9 +19,9 @@ class Expression : public AstNode {
 
 using ExpressionPtr = std::unique_ptr<Expression>;
 
-class Binary : public Expression {
+class BinaryExpr : public Expression {
  public:
-  Binary(ExpressionPtr left, Token op, ExpressionPtr right)
+  BinaryExpr(ExpressionPtr left, Token op, ExpressionPtr right)
       : left_(std::move(left)), op_(std::move(op)), right_(std::move(right)) {}
 
   void accept(Visitor& visitor) override { visitor.visit(*this); }
@@ -31,9 +31,9 @@ class Binary : public Expression {
   ExpressionPtr right_;
 };
 
-class Unary : public Expression {
+class UnaryExpr : public Expression {
  public:
-  Unary(Token op, ExpressionPtr right)
+  UnaryExpr(Token op, ExpressionPtr right)
       : op_(std::move(op)), right_(std::move(right)) {}
 
   void accept(Visitor& visitor) override { visitor.visit(*this); }
@@ -42,18 +42,18 @@ class Unary : public Expression {
   ExpressionPtr right_;
 };
 
-class Literal : public Expression {
+class LiteralExpr : public Expression {
  public:
-  explicit Literal(LoxObject value) : value_(std::move(value)) {}
+  explicit LiteralExpr(LoxObject value) : value_(std::move(value)) {}
 
   void accept(Visitor& visitor) override { visitor.visit(*this); }
 
   LoxObject value_;
 };
 
-class Grouping : public Expression {
+class GroupingExpr : public Expression {
  public:
-  explicit Grouping(ExpressionPtr expression)
+  explicit GroupingExpr(ExpressionPtr expression)
       : expression_(std::move(expression)) {}
 
   void accept(Visitor& visitor) override { visitor.visit(*this); }

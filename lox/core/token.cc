@@ -4,7 +4,7 @@
 
 namespace lox {
 
-std::string Token::toString() const {
+std::string Token::ToString() const {
   return tokenTypeToString(type_) + " " + lexeme_ + " " + literal_.toString();
 }
 

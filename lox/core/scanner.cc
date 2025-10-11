@@ -36,7 +36,7 @@ void Scanner::String() {
   }
   Advance();
   AddToken(TokenType::STRING,
-           LoxObject(source_.substr(start_ + 1, current_ - start_ - 1)));
+           LoxObject(source_.substr(start_ + 1, current_ - start_ - 2)));
 }
 
 void Scanner::Number() {

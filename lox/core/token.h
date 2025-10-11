@@ -14,9 +14,15 @@ class Token {
         int line)
       : type_(type), lexeme_(lexeme), literal_(literal), line_(line) {}
 
-  std::string toString() const;
+  std::string ToString() const;
 
   std::string lexeme() const { return lexeme_; }
+
+  TokenType type() const { return type_; }
+  
+  LoxObject literal() const { return literal_; }
+  
+  int line() const { return line_; }
 
  private:
   TokenType type_;

@@ -16,16 +16,16 @@ void testPrinter() {
 
   // 测试 1: Literal 字面量
   std::cout << "测试 1: 字面量\n";
-  auto literal = std::make_unique<Literal>(LoxObject(123.1));
+  auto literal = std::make_unique<LiteralExpr>(LoxObject(123.1));
   std::cout << "  表达式: 123.1\n";
   std::cout << "  输出: " << printer.print(*literal) << "\n\n";
 
   // 测试 2: Unary 一元表达式: -123
   std::cout << "测试 2: 一元表达式\n";
   Token minus(TokenType::MINUS, "-", nullptr, 1);
-  auto unary = std::make_unique<Unary>(
+  auto unary = std::make_unique<UnaryExpr>(
       minus,
-      std::make_unique<Literal>(LoxObject(123.0))
+      std::make_unique<LiteralExpr>(LoxObject(123.0))
   );
   std::cout << "  表达式: -123\n";
   std::cout << "  输出: " << printer.print(*unary) << "\n\n";
@@ -33,10 +33,10 @@ void testPrinter() {
   // 测试 3: Binary 二元表达式: 1 + 2
   std::cout << "测试 3: 二元表达式\n";
   Token plus(TokenType::PLUS, "+", nullptr, 1);
-  auto binary = std::make_unique<Binary>(
-      std::make_unique<Literal>(LoxObject(1.0)),
+  auto binary = std::make_unique<BinaryExpr>(
+      std::make_unique<LiteralExpr>(LoxObject(1.0)),
       plus,
-      std::make_unique<Literal>(LoxObject(2.0))
+      std::make_unique<LiteralExpr>(LoxObject(2.0))
   );
   std::cout << "  表达式: 1 + 2\n";
   std::cout << "  输出: " << printer.print(*binary) << "\n\n";
@@ -45,20 +45,20 @@ void testPrinter() {
   std::cout << "测试 4: 复杂表达式\n";
   Token star(TokenType::STAR, "*", nullptr, 1);
   Token minus2(TokenType::MINUS, "-", nullptr, 1);
-  auto complex = std::make_unique<Binary>(
-      std::make_unique<Grouping>(
-          std::make_unique<Binary>(
-              std::make_unique<Literal>(LoxObject(1.0)),
+  auto complex = std::make_unique<BinaryExpr>(
+      std::make_unique<GroupingExpr>(
+          std::make_unique<BinaryExpr>(
+              std::make_unique<LiteralExpr>(LoxObject(1.0)),
               plus,
-              std::make_unique<Literal>(LoxObject(2.0))
+              std::make_unique<LiteralExpr>(LoxObject(2.0))
           )
       ),
       star,
-      std::make_unique<Grouping>(
-          std::make_unique<Binary>(
-              std::make_unique<Literal>(LoxObject(4.0)),
+      std::make_unique<GroupingExpr>(
+          std::make_unique<BinaryExpr>(
+              std::make_unique<LiteralExpr>(LoxObject(4.0)),
               minus2,
-              std::make_unique<Literal>(LoxObject(3.0))
+              std::make_unique<LiteralExpr>(LoxObject(3.0))
           )
       )
   );
@@ -69,11 +69,11 @@ void testPrinter() {
   std::cout << "测试 5: 嵌套一元表达式\n";
   Token minus3(TokenType::MINUS, "-", nullptr, 1);
   Token minus4(TokenType::MINUS, "-", nullptr, 1);
-  auto nested = std::make_unique<Unary>(
+  auto nested = std::make_unique<UnaryExpr>(
       minus3,
-      std::make_unique<Unary>(
+      std::make_unique<UnaryExpr>(
           minus4,
-          std::make_unique<Literal>(LoxObject(5.0))
+          std::make_unique<LiteralExpr>(LoxObject(5.0))
       )
   );
   std::cout << "  表达式: -(-5)\n";

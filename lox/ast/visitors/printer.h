@@ -17,20 +17,20 @@ class Printer : public Visitor {
     return result_;
   }
 
-  void visit(Binary& binary) override {
+  void visit(BinaryExpr& binary) override {
     parenthesize(binary.op_.lexeme(),
                  {binary.left_.get(), binary.right_.get()});
   }
 
-  void visit(Unary& unary) override {
+  void visit(UnaryExpr& unary) override {
     parenthesize(unary.op_.lexeme(), {unary.right_.get()});
   }
 
-  void visit(Literal& literal) override {
+  void visit(LiteralExpr& literal) override {
     result_ += literal.value_.toString();
   }
 
-  void visit(Grouping& grouping) override {
+  void visit(GroupingExpr& grouping) override {
     parenthesize("group", {grouping.expression_.get()});
   }
 

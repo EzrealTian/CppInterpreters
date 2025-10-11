@@ -3,8 +3,14 @@
 #include <string>
 #include <iterator>
 #include <cstdlib>
+#include <vector>
 
 #include "lox/core/lox.h"
+#include "lox/util/token_type.h"
+#include "lox/core/token.h"
+#include "lox/core/scanner.h"
+#include "lox/core/parser.h"
+#include "lox/ast/visitors/printer.h"
 
 namespace lox {
 
@@ -27,10 +33,30 @@ void Lox::RunPrompt() {
   }
 }
 
-void Lox::run(const std::string& source) { std::cout << source << std::endl; }
+void Lox::run(const std::string& source) {
+  Scanner scanner(source);
+  std::vector<Token> tokens = scanner.ScanTokens();
+  Parser parser(tokens);
+  ExpressionPtr expression = parser.ParseExpression();
+  
+  if (has_error_) {
+    return;
+  }
+
+  Printer printer;
+  std::cout << printer.print(*expression) << std::endl;
+}
 
 void Lox::error(int line, const std::string& message) {
   report(line, "", message);
+}
+
+void Lox::error(Token token, const std::string& message) {
+  if (token.type() == TokenType::EEOF) {
+    report(token.line(), " at end", message);
+  } else {
+    report(token.line(), " at '" + token.lexeme() + "'", message);
+  }
 }
 
 void Lox::report(int line, const std::string& where,
