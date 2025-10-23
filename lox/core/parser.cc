@@ -36,17 +36,11 @@ Token Parser::Advance() {
   return Previous();
 }
 
-bool Parser::IsAtEnd() {
-  return Peek().type() == TokenType::EEOF;
-}
+bool Parser::IsAtEnd() { return Peek().type() == TokenType::EEOF; }
 
-Token Parser::Previous() {
-  return tokens_[current_ - 1];
-}
+Token Parser::Previous() { return tokens_[current_ - 1]; }
 
-Token Parser::Peek() {
-  return tokens_[current_];
-}
+Token Parser::Peek() { return tokens_[current_]; }
 
 Token Parser::Consume(TokenType type, const std::string& message) {
   if (Check(type)) return Advance();
@@ -54,7 +48,7 @@ Token Parser::Consume(TokenType type, const std::string& message) {
 }
 
 Parser::ParseError Parser::Error(Token token, const std::string& message) {
-  Lox::Instance().error(token, message);
+  Lox::Instance().Error(token, message);
   return ParseError(message);
 }
 
@@ -81,13 +75,13 @@ void Parser::Synchronize() {
 // ==================== Grammar Parsing Functions ====================
 
 ExpressionPtr Parser::ParseEquality() {
-  return ParseBinary([this]() { return ParseComparison(); }, 
+  return ParseBinary([this]() { return ParseComparison(); },
                      {TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL});
 }
 
 ExpressionPtr Parser::ParseComparison() {
   return ParseBinary([this]() { return ParseTerm(); },
-                     {TokenType::GREATER, TokenType::GREATER_EQUAL, 
+                     {TokenType::GREATER, TokenType::GREATER_EQUAL,
                       TokenType::LESS, TokenType::LESS_EQUAL});
 }
 
@@ -101,7 +95,8 @@ ExpressionPtr Parser::ParseFactor() {
                      {TokenType::SLASH, TokenType::STAR});
 }
 
-ExpressionPtr Parser::ParseBinary(std::function<ExpressionPtr()> next, std::initializer_list<TokenType> types) {
+ExpressionPtr Parser::ParseBinary(std::function<ExpressionPtr()> next,
+                                  std::initializer_list<TokenType> types) {
   ExpressionPtr expr = next();
   while (Match(types)) {
     Token op = Previous();
@@ -121,16 +116,16 @@ ExpressionPtr Parser::ParseUnary() {
 }
 
 ExpressionPtr Parser::ParsePrimary() {
-  if (Match({TokenType::TRUE})) 
+  if (Match({TokenType::TRUE}))
     return std::make_unique<LiteralExpr>(LoxObject(true));
-  
-  if (Match({TokenType::FALSE})) 
+
+  if (Match({TokenType::FALSE}))
     return std::make_unique<LiteralExpr>(LoxObject(false));
-  
-  if (Match({TokenType::NIL})) 
+
+  if (Match({TokenType::NIL}))
     return std::make_unique<LiteralExpr>(LoxObject(nullptr));
 
-  if (Match({TokenType::NUMBER, TokenType::STRING})) 
+  if (Match({TokenType::NUMBER, TokenType::STRING}))
     return std::make_unique<LiteralExpr>(Previous().literal());
 
   if (Match({TokenType::LEFT_PAREN})) {

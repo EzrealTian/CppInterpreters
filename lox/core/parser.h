@@ -16,7 +16,7 @@ class Parser {
   // Parser error exception class
   class ParseError : public std::runtime_error {
    public:
-    explicit ParseError(const std::string& message) 
+    explicit ParseError(const std::string& message)
         : std::runtime_error(message) {}
   };
 
@@ -37,15 +37,19 @@ class Parser {
   void Synchronize();
 
   // Grammar parsing functions
-  ExpressionPtr ParseEquality();     // equality  →  comparison ( ( "!=" | "==" ) comparison )* ;
-  ExpressionPtr ParseComparison();   // comparison  →  term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-  ExpressionPtr ParseTerm();         // term  →  factor ( ( "-" | "+" ) factor )* ;
-  ExpressionPtr ParseFactor();       // factor  →  unary ( ( "/" | "*" ) unary )* ;
-  ExpressionPtr ParseBinary(std::function<ExpressionPtr()> next, std::initializer_list<TokenType> types);
-  ExpressionPtr ParseUnary();        // unary  →  ( "!" | "-" ) unary | primary ;
-  ExpressionPtr ParsePrimary();      // primary  →  NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+  ExpressionPtr
+  ParseEquality();  // equality  →  comparison ( ( "!=" | "==" ) comparison )* ;
+  ExpressionPtr ParseComparison();  // comparison  →  term ( ( ">" | ">=" | "<"
+                                    // | "<=" ) term )* ;
+  ExpressionPtr ParseTerm();    // term  →  factor ( ( "-" | "+" ) factor )* ;
+  ExpressionPtr ParseFactor();  // factor  →  unary ( ( "/" | "*" ) unary )* ;
+  ExpressionPtr ParseBinary(std::function<ExpressionPtr()> next,
+                            std::initializer_list<TokenType> types);
+  ExpressionPtr ParseUnary();    // unary  →  ( "!" | "-" ) unary | primary ;
+  ExpressionPtr ParsePrimary();  // primary  →  NUMBER | STRING | "true" |
+                                 // "false" | "nil" | "(" expression ")" ;
 
-private:
+ private:
   std::vector<Token> tokens_;
   int current_ = 0;
 };

@@ -18,7 +18,7 @@ void Scanner::BlockComment() {
     }
   }
   if (level > 0) {
-    Lox::Instance().error(line_, "Unterminated block comment.");
+    Lox::Instance().Error(line_, "Unterminated block comment.");
     return;
   }
 }
@@ -31,7 +31,7 @@ void Scanner::String() {
     Advance();
   }
   if (IsAtEnd()) {
-    Lox::Instance().error(line_, "Unterminated string.");
+    Lox::Instance().Error(line_, "Unterminated string.");
     return;
   }
   Advance();
@@ -138,7 +138,7 @@ void Scanner::ScanToken() {
       } else if (IsAlpha(c)) {
         Identifier();
       } else {
-        Lox::Instance().error(line_, "Unexpected character.");
+        Lox::Instance().Error(line_, "Unexpected character.");
       }
       break;
   }

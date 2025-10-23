@@ -11,36 +11,40 @@ namespace lox {
 
 class Printer : public Visitor {
  public:
-  std::string print(Expression& expr) {
+  std::string Print(Expression& expr) {
     result_.clear();
-    expr.accept(*this);
+    expr.Accept(*this);
     return result_;
   }
 
-  void visit(BinaryExpr& binary) override {
-    parenthesize(binary.op_.lexeme(),
+  LoxObject Visit(BinaryExpr& binary) override {
+    Parenthesize(binary.op_.lexeme(),
                  {binary.left_.get(), binary.right_.get()});
+    return nullptr;
   }
 
-  void visit(UnaryExpr& unary) override {
-    parenthesize(unary.op_.lexeme(), {unary.right_.get()});
+  LoxObject Visit(UnaryExpr& unary) override {
+    Parenthesize(unary.op_.lexeme(), {unary.right_.get()});
+    return nullptr;
   }
 
-  void visit(LiteralExpr& literal) override {
-    result_ += literal.value_.toString();
+  LoxObject Visit(LiteralExpr& literal) override {
+    result_ += literal.value_.ToString();
+    return nullptr;
   }
 
-  void visit(GroupingExpr& grouping) override {
-    parenthesize("group", {grouping.expression_.get()});
+  LoxObject Visit(GroupingExpr& grouping) override {
+    Parenthesize("group", {grouping.expression_.get()});
+    return nullptr;
   }
 
  private:
-  void parenthesize(const std::string& name,
+  void Parenthesize(const std::string& name,
                     std::initializer_list<Expression*> exprs) {
     result_ += "(" + name;
     for (Expression* expr : exprs) {
       result_ += " ";
-      expr->accept(*this);
+      expr->Accept(*this);
     }
     result_ += ")";
   }

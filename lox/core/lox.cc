@@ -10,7 +10,7 @@
 #include "lox/core/token.h"
 #include "lox/core/scanner.h"
 #include "lox/core/parser.h"
-#include "lox/ast/visitors/printer.h"
+#include "lox/ast/visitors/interpreter.h"
 
 namespace lox {
 
@@ -22,14 +22,18 @@ void Lox::RunFile(const std::string& path) {
   if (has_error_) {
     exit(65);
   }
+  if (has_runtime_error_) {
+    exit(70);
+  }
 }
 
 void Lox::RunPrompt() {
   std::string line;
+  std::cout << "> ";
   while (std::getline(std::cin, line)) {
-    std::cout << "> ";
     run(line);
     has_error_ = false;
+    std::cout << "> ";
   }
 }
 
@@ -38,28 +42,34 @@ void Lox::run(const std::string& source) {
   std::vector<Token> tokens = scanner.ScanTokens();
   Parser parser(tokens);
   ExpressionPtr expression = parser.ParseExpression();
-  
+
   if (has_error_) {
     return;
   }
 
-  Printer printer;
-  std::cout << printer.print(*expression) << std::endl;
+  lox::Interpreter interpreter;
+  interpreter.Interpret(std::move(expression));
 }
 
-void Lox::error(int line, const std::string& message) {
-  report(line, "", message);
+void Lox::Error(int line, const std::string& message) {
+  Report(line, "", message);
 }
 
-void Lox::error(Token token, const std::string& message) {
+void Lox::Error(Token token, const std::string& message) {
   if (token.type() == TokenType::EEOF) {
-    report(token.line(), " at end", message);
+    Report(token.line(), " at end", message);
   } else {
-    report(token.line(), " at '" + token.lexeme() + "'", message);
+    Report(token.line(), " at '" + token.lexeme() + "'", message);
   }
 }
 
-void Lox::report(int line, const std::string& where,
+void Lox::RuntimeError(const lox::RuntimeError& error) {
+  std::cout << "[line " << error.token_.line() << "] Runtime Error" << ": "
+            << error.what() << std::endl;
+  has_runtime_error_ = true;
+}
+
+void Lox::Report(int line, const std::string& where,
                  const std::string& message) {
   std::cout << "[line " << line << "] Error" << where << ": " << message
             << std::endl;

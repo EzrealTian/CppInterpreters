@@ -5,7 +5,7 @@
 
 namespace lox {
 
-std::string LoxObject::toString() const {
+std::string LoxObject::ToString() const {
   switch (value_.index()) {
     case TypeIndex::STRING:
       return std::get<std::string>(value_);

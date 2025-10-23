@@ -1,6 +1,7 @@
 #ifndef LOX_AST_VISITOR_H_
 #define LOX_AST_VISITOR_H_
 
+#include "lox/util/lox_object.h"
 namespace lox {
 
 class BinaryExpr;
@@ -12,10 +13,10 @@ class Visitor {
  public:
   virtual ~Visitor() = default;
 
-  virtual void visit(BinaryExpr& binary) = 0;
-  virtual void visit(UnaryExpr& unary) = 0;
-  virtual void visit(LiteralExpr& literal) = 0;
-  virtual void visit(GroupingExpr& grouping) = 0;
+  virtual LoxObject Visit(BinaryExpr& binary) = 0;
+  virtual LoxObject Visit(UnaryExpr& unary) = 0;
+  virtual LoxObject Visit(LiteralExpr& literal) = 0;
+  virtual LoxObject Visit(GroupingExpr& grouping) = 0;
 };
 
 }  // namespace lox

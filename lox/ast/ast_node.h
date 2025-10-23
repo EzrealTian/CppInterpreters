@@ -9,7 +9,7 @@ class AstNode {
  public:
   virtual ~AstNode() = default;
 
-  virtual void accept(Visitor& visitor) = 0;
+  virtual LoxObject Accept(Visitor& visitor) = 0;
 };
 
 }  // namespace lox

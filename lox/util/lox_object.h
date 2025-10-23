@@ -81,7 +81,7 @@ class LoxObject {
   size_t index() const { return value_.index(); }
 
   // convert to string(use constant to improve maintainability)
-  std::string toString() const;
+  std::string ToString() const;
 
   // check if it is a truthy value
   bool isTruthy() const;
@@ -100,7 +100,7 @@ class LoxObject {
 
   // output stream operator
   friend std::ostream& operator<<(std::ostream& os, const LoxObject& obj) {
-    os << obj.toString();
+    os << obj.ToString();
     return os;
   }
 

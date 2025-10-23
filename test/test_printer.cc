@@ -18,7 +18,7 @@ void testPrinter() {
   std::cout << "测试 1: 字面量\n";
   auto literal = std::make_unique<LiteralExpr>(LoxObject(123.1));
   std::cout << "  表达式: 123.1\n";
-  std::cout << "  输出: " << printer.print(*literal) << "\n\n";
+  std::cout << "  输出: " << printer.Print(*literal) << "\n\n";
 
   // 测试 2: Unary 一元表达式: -123
   std::cout << "测试 2: 一元表达式\n";
@@ -28,7 +28,7 @@ void testPrinter() {
       std::make_unique<LiteralExpr>(LoxObject(123.0))
   );
   std::cout << "  表达式: -123\n";
-  std::cout << "  输出: " << printer.print(*unary) << "\n\n";
+  std::cout << "  输出: " << printer.Print(*unary) << "\n\n";
 
   // 测试 3: Binary 二元表达式: 1 + 2
   std::cout << "测试 3: 二元表达式\n";
@@ -39,7 +39,7 @@ void testPrinter() {
       std::make_unique<LiteralExpr>(LoxObject(2.0))
   );
   std::cout << "  表达式: 1 + 2\n";
-  std::cout << "  输出: " << printer.print(*binary) << "\n\n";
+  std::cout << "  输出: " << printer.Print(*binary) << "\n\n";
 
   // 测试 4: 复杂表达式: (1 + 2) * (4 - 3)
   std::cout << "测试 4: 复杂表达式\n";
@@ -63,7 +63,7 @@ void testPrinter() {
       )
   );
   std::cout << "  表达式: (1 + 2) * (4 - 3)\n";
-  std::cout << "  输出: " << printer.print(*complex) << "\n\n";
+  std::cout << "  输出: " << printer.Print(*complex) << "\n\n";
 
   // 测试 5: 嵌套一元表达式: -(-5)
   std::cout << "测试 5: 嵌套一元表达式\n";
@@ -77,7 +77,7 @@ void testPrinter() {
       )
   );
   std::cout << "  表达式: -(-5)\n";
-  std::cout << "  输出: " << printer.print(*nested) << "\n\n";
+  std::cout << "  输出: " << printer.Print(*nested) << "\n\n";
 
   std::cout << "✅ 表达式打印器测试完成！\n";
 }
