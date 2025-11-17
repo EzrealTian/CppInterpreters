@@ -5,8 +5,10 @@
 #include <initializer_list>
 #include <functional>
 #include <stdexcept>
+
 #include "lox/core/token.h"
-#include "lox/ast/expression.h"
+#include "lox/ast/expr.h"
+#include "lox/ast/stmt.h"
 #include "lox/util/token_type.h"
 
 namespace lox {
@@ -22,7 +24,7 @@ class Parser {
 
   Parser(const std::vector<Token>& tokens) : tokens_(std::move(tokens)) {}
 
-  ExpressionPtr ParseExpression();
+  std::vector<StmtPtr> Parse();
 
  private:
   // Helper functions
@@ -37,17 +39,25 @@ class Parser {
   void Synchronize();
 
   // Grammar parsing functions
-  ExpressionPtr
-  ParseEquality();  // equality  →  comparison ( ( "!=" | "==" ) comparison )* ;
-  ExpressionPtr ParseComparison();  // comparison  →  term ( ( ">" | ">=" | "<"
-                                    // | "<=" ) term )* ;
-  ExpressionPtr ParseTerm();    // term  →  factor ( ( "-" | "+" ) factor )* ;
-  ExpressionPtr ParseFactor();  // factor  →  unary ( ( "/" | "*" ) unary )* ;
-  ExpressionPtr ParseBinary(std::function<ExpressionPtr()> next,
-                            std::initializer_list<TokenType> types);
-  ExpressionPtr ParseUnary();    // unary  →  ( "!" | "-" ) unary | primary ;
-  ExpressionPtr ParsePrimary();  // primary  →  NUMBER | STRING | "true" |
-                                 // "false" | "nil" | "(" expression ")" ;
+  ExprPtr Expression();
+  ExprPtr ParseEquality();    // equality  →
+                              // comparison ( ( "!=" | "==" ) comparison )* ;
+  ExprPtr ParseComparison();  // comparison  →  term ( ( ">" | ">=" | "<"
+                              // | "<=" ) term )* ;
+  ExprPtr ParseTerm();        // term  →  factor ( ( "-" | "+" ) factor )* ;
+  ExprPtr ParseFactor();      // factor  →  unary ( ( "/" | "*" ) unary )* ;
+  ExprPtr ParseBinary(std::function<ExprPtr()> next,
+                      std::initializer_list<TokenType> types);
+  ExprPtr ParseUnary();    // unary  →  ( "!" | "-" ) unary | primary ;
+  ExprPtr ParsePrimary();  // primary  →  NUMBER | STRING | "true" |
+                           // "false" | "nil" | "(" expression ")" ;
+
+  StmtPtr Statement();
+  StmtPtr PrintStatement();
+  StmtPtr ExprStatement();
+
+  StmtPtr Declaration();
+  StmtPtr VarDeclaration();
 
  private:
   std::vector<Token> tokens_;

@@ -1,97 +1,44 @@
 #ifndef LOX_AST_VISITORS_INTERPRETER_H_
 #define LOX_AST_VISITORS_INTERPRETER_H_
 
-#include "lox/core/lox.h"
 #include "lox/ast/visitor.h"
-#include "lox/ast/expression.h"
+#include "lox/ast/expr.h"
+#include "lox/ast/stmt.h"
 #include "lox/util/lox_object.h"
-#include "lox/util/runtime_error.h"
+#include "lox/core/environment.h"
+
+#include <vector>
 
 namespace lox {
 
-class Interpreter : public Visitor {
+class Interpreter : public ExprVisitor, public StmtVisitor {
  public:
-  void Interpret(ExpressionPtr expr) {
-    try {
-      LoxObject result = Evaluate(std::move(expr));
-      std::cout << result.ToString() << std::endl;
-    } catch (const RuntimeError& error) {
-      Lox::Instance().RuntimeError(error);
-    }
-  }
+  void Interpret(std::vector<StmtPtr> statements);
 
-  LoxObject Visit(LiteralExpr& expr) override { return expr.value_; }
+  LoxObject Visit(LiteralExpr& expr) override;
 
-  LoxObject Visit(GroupingExpr& expr) override {
-    return Evaluate(std::move(expr.expression_));
-  }
+  LoxObject Visit(GroupingExpr& expr) override;
 
-  LoxObject Visit(UnaryExpr& expr) override {
-    LoxObject right = Evaluate(std::move(expr.right_));
-    switch (expr.op_.type()) {
-      case TokenType::MINUS:
-        return -right.get<double>();
-      case TokenType::BANG:
-        return !right.isTruthy();
-      default:
-        return nullptr;
-    }
-  }
+  LoxObject Visit(UnaryExpr& expr) override;
 
-  LoxObject Visit(BinaryExpr& expr) override {
-    LoxObject left = Evaluate(std::move(expr.left_));
-    LoxObject right = Evaluate(std::move(expr.right_));
-    switch (expr.op_.type()) {
-      case TokenType::PLUS:
-        if (left.is<double>() && right.is<double>()) {
-          return left.get<double>() + right.get<double>();
-        }
-        if (left.is<std::string>() && right.is<std::string>()) {
-          return left.get<std::string>() + right.get<std::string>();
-        }
-        throw RuntimeError(expr.op_, "Operands must be numbers or strings.");
-      case TokenType::MINUS:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() - right.get<double>();
-      case TokenType::STAR:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() * right.get<double>();
-      case TokenType::SLASH:
-        CheckNumberOperands(expr.op_, left, right);
-        if (right.get<double>() == 0) {
-          throw RuntimeError(expr.op_, "Division by zero.");
-        }
-        return left.get<double>() / right.get<double>();
-      case TokenType::GREATER:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() > right.get<double>();
-      case TokenType::GREATER_EQUAL:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() >= right.get<double>();
-      case TokenType::LESS:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() < right.get<double>();
-      case TokenType::LESS_EQUAL:
-        CheckNumberOperands(expr.op_, left, right);
-        return left.get<double>() <= right.get<double>();
-      case TokenType::EQUAL_EQUAL:
-        return left == right;
-      case TokenType::BANG_EQUAL:
-        return left != right;
-      default:
-        return nullptr;
-    }
-  }
+  LoxObject Visit(BinaryExpr& expr) override;
+
+  LoxObject Visit(VariableExpr& variable) override;
+
+  void Visit(ExprStmt& expr_stmt) override;
+
+  void Visit(PrintStmt& print_stmt) override;
+
+  void Visit(VarStmt& var_stmt) override;
 
  private:
-  LoxObject Evaluate(ExpressionPtr expr) { return expr->Accept(*this); }
+  LoxObject Evaluate(ExprPtr expr);
 
-  void CheckNumberOperands(Token op, LoxObject left, LoxObject right) {
-    if (left.is<double>() && right.is<double>()) {
-      return;
-    }
-    throw RuntimeError(op, "Operands must be numbers.");
-  }
+  void CheckNumberOperands(Token op, LoxObject left, LoxObject right);
+
+  void Execute(StmtPtr stmt);
+
+  Environment environment_;
 };
 
 }  // namespace lox

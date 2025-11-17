@@ -5,13 +5,13 @@
 #include <initializer_list>
 
 #include "lox/ast/visitor.h"
-#include "lox/ast/expression.h"
+#include "lox/ast/expr.h"
 
 namespace lox {
 
-class Printer : public Visitor {
+class Printer : public ExprVisitor {
  public:
-  std::string Print(Expression& expr) {
+  std::string Print(Expr& expr) {
     result_.clear();
     expr.Accept(*this);
     return result_;
@@ -38,11 +38,13 @@ class Printer : public Visitor {
     return nullptr;
   }
 
+  LoxObject Visit(VariableExpr& variable) override { return nullptr; }
+
  private:
   void Parenthesize(const std::string& name,
-                    std::initializer_list<Expression*> exprs) {
+                    std::initializer_list<Expr*> exprs) {
     result_ += "(" + name;
-    for (Expression* expr : exprs) {
+    for (Expr* expr : exprs) {
       result_ += " ";
       expr->Accept(*this);
     }

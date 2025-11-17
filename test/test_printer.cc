@@ -1,6 +1,6 @@
 #include <iostream>
 #include <memory>
-#include "lox/ast/expression.h"
+#include "lox/ast/expr.h"
 #include "lox/ast/visitors/printer.h"
 #include "lox/core/token.h"
 #include "lox/util/token_type.h"

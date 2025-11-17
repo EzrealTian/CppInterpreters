@@ -12,6 +12,7 @@ file(GLOB TEST_SOURCES
 file(GLOB_RECURSE LOX_LIB_SOURCES 
     "${CMAKE_SOURCE_DIR}/lox/core/*.cc"
     "${CMAKE_SOURCE_DIR}/lox/util/*.cc"
+    "${CMAKE_SOURCE_DIR}/lox/ast/*.cc"
 )
 
 file(GLOB_RECURSE LOX_HEADERS 

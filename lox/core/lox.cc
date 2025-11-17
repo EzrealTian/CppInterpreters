@@ -41,14 +41,14 @@ void Lox::run(const std::string& source) {
   Scanner scanner(source);
   std::vector<Token> tokens = scanner.ScanTokens();
   Parser parser(tokens);
-  ExpressionPtr expression = parser.ParseExpression();
+  std::vector<StmtPtr> statements = parser.Parse();
 
   if (has_error_) {
     return;
   }
 
-  lox::Interpreter interpreter;
-  interpreter.Interpret(std::move(expression));
+  static Interpreter interpreter;
+  interpreter.Interpret(std::move(statements));
 }
 
 void Lox::Error(int line, const std::string& message) {

@@ -1,17 +1,17 @@
 #include "lox/core/parser.h"
+#include "lox/ast/stmt.h"
 #include "lox/core/lox.h"
 
 namespace lox {
 
 // ==================== Public Interface ====================
 
-ExpressionPtr Parser::ParseExpression() {
-  try {
-    return ParseEquality();
-  } catch (const ParseError& e) {
-    // Synchronize();
-    return nullptr;
+std::vector<StmtPtr> Parser::Parse() {
+  std::vector<StmtPtr> statements;
+  while (!IsAtEnd()) {
+    statements.push_back(Declaration());
   }
+  return statements;
 }
 
 // ==================== Helper Functions ====================
@@ -72,50 +72,52 @@ void Parser::Synchronize() {
   }
 }
 
-// ==================== Grammar Parsing Functions ====================
+// ==================== Grammar Parsing Expr Functions ====================
 
-ExpressionPtr Parser::ParseEquality() {
+ExprPtr Parser::Expression() { return ParseEquality(); }
+
+ExprPtr Parser::ParseEquality() {
   return ParseBinary([this]() { return ParseComparison(); },
                      {TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL});
 }
 
-ExpressionPtr Parser::ParseComparison() {
+ExprPtr Parser::ParseComparison() {
   return ParseBinary([this]() { return ParseTerm(); },
                      {TokenType::GREATER, TokenType::GREATER_EQUAL,
                       TokenType::LESS, TokenType::LESS_EQUAL});
 }
 
-ExpressionPtr Parser::ParseTerm() {
+ExprPtr Parser::ParseTerm() {
   return ParseBinary([this]() { return ParseFactor(); },
                      {TokenType::MINUS, TokenType::PLUS});
 }
 
-ExpressionPtr Parser::ParseFactor() {
+ExprPtr Parser::ParseFactor() {
   return ParseBinary([this]() { return ParseUnary(); },
                      {TokenType::SLASH, TokenType::STAR});
 }
 
-ExpressionPtr Parser::ParseBinary(std::function<ExpressionPtr()> next,
-                                  std::initializer_list<TokenType> types) {
-  ExpressionPtr expr = next();
+ExprPtr Parser::ParseBinary(std::function<ExprPtr()> next,
+                            std::initializer_list<TokenType> types) {
+  ExprPtr expr = next();
   while (Match(types)) {
     Token op = Previous();
-    ExpressionPtr right = next();
+    ExprPtr right = next();
     expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
   }
   return expr;
 }
 
-ExpressionPtr Parser::ParseUnary() {
+ExprPtr Parser::ParseUnary() {
   if (Match({TokenType::BANG, TokenType::MINUS})) {
     Token op = Previous();
-    ExpressionPtr right = ParseUnary();
+    ExprPtr right = ParseUnary();
     return std::make_unique<UnaryExpr>(op, std::move(right));
   }
   return ParsePrimary();
 }
 
-ExpressionPtr Parser::ParsePrimary() {
+ExprPtr Parser::ParsePrimary() {
   if (Match({TokenType::TRUE}))
     return std::make_unique<LiteralExpr>(LoxObject(true));
 
@@ -128,8 +130,13 @@ ExpressionPtr Parser::ParsePrimary() {
   if (Match({TokenType::NUMBER, TokenType::STRING}))
     return std::make_unique<LiteralExpr>(Previous().literal());
 
+  if (Match({TokenType::IDENTIFIER})) {
+    Token name = Previous();
+    return std::make_unique<VariableExpr>(name);
+  }
+
   if (Match({TokenType::LEFT_PAREN})) {
-    ExpressionPtr expr = ParseExpression();
+    ExprPtr expr = Expression();
     Consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
     return std::make_unique<GroupingExpr>(std::move(expr));
   }
@@ -137,4 +144,42 @@ ExpressionPtr Parser::ParsePrimary() {
   throw Error(Peek(), "Expect expression.");
 }
 
+// ==================== Grammar Parsing Stmt Functions ====================
+
+StmtPtr Parser::Statement() {
+  if (Match({TokenType::PRINT})) return PrintStatement();
+  return ExprStatement();
+}
+
+StmtPtr Parser::PrintStatement() {
+  ExprPtr value = Expression();
+  Consume(TokenType::SEMICOLON, "Expect ';' after value.");
+  return std::make_unique<PrintStmt>(std::move(value));
+}
+
+StmtPtr Parser::ExprStatement() {
+  ExprPtr expr = Expression();
+  Consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+  return std::make_unique<ExprStmt>(std::move(expr));
+}
+
+StmtPtr Parser::Declaration() {
+  try {
+    if (Match({TokenType::VAR})) return VarDeclaration();
+    return Statement();
+  } catch (const ParseError& error) {
+    Synchronize();
+    return nullptr;
+  }
+}
+
+StmtPtr Parser::VarDeclaration() {
+  Token name = Consume(TokenType::IDENTIFIER, "Expect variable name.");
+  ExprPtr initializer = nullptr;
+  if (Match({TokenType::EQUAL})) {
+    initializer = Expression();
+  }
+  Consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+  return std::make_unique<VarStmt>(name, std::move(initializer));
+}
 }  // namespace lox
