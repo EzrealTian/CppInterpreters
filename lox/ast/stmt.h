@@ -4,6 +4,7 @@
 #include "lox/ast/expr.h"
 
 #include <memory>
+#include <vector>
 
 namespace lox {
 
@@ -14,6 +15,16 @@ class Stmt {
 };
 
 using StmtPtr = std::unique_ptr<Stmt>;
+
+class BlockStmt : public Stmt {
+ public:
+  BlockStmt(std::vector<StmtPtr> statements)
+      : statements_(std::move(statements)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  std::vector<StmtPtr> statements_;
+};
 
 class ExprStmt : public Stmt {
  public:

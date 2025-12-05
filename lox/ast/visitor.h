@@ -9,6 +9,7 @@ class UnaryExpr;
 class LiteralExpr;
 class GroupingExpr;
 class VariableExpr;
+class AssignExpr;
 class ExprVisitor {
  public:
   virtual ~ExprVisitor() = default;
@@ -18,8 +19,10 @@ class ExprVisitor {
   virtual LoxObject Visit(LiteralExpr& literal) = 0;
   virtual LoxObject Visit(GroupingExpr& grouping) = 0;
   virtual LoxObject Visit(VariableExpr& variable) = 0;
+  virtual LoxObject Visit(AssignExpr& assign) = 0;
 };
 
+class BlockStmt;
 class ExprStmt;
 class PrintStmt;
 class VarStmt;
@@ -27,6 +30,7 @@ class StmtVisitor {
  public:
   virtual ~StmtVisitor() = default;
 
+  virtual void Visit(BlockStmt& block_stmt) = 0;
   virtual void Visit(ExprStmt& expr_stmt) = 0;
   virtual void Visit(PrintStmt& print_stmt) = 0;
   virtual void Visit(VarStmt& var_stmt) = 0;

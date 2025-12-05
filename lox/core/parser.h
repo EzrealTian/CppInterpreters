@@ -48,10 +48,13 @@ class Parser {
   ExprPtr ParseFactor();      // factor  →  unary ( ( "/" | "*" ) unary )* ;
   ExprPtr ParseBinary(std::function<ExprPtr()> next,
                       std::initializer_list<TokenType> types);
-  ExprPtr ParseUnary();    // unary  →  ( "!" | "-" ) unary | primary ;
-  ExprPtr ParsePrimary();  // primary  →  NUMBER | STRING | "true" |
-                           // "false" | "nil" | "(" expression ")" ;
+  ExprPtr ParseUnary();       // unary  →  ( "!" | "-" ) unary | primary ;
+  ExprPtr ParsePrimary();     // primary  →  NUMBER | STRING | "true" |
+                              // "false" | "nil" | "(" expression ")" ;
+  ExprPtr ParseAssignment();  // assignment  →  ( call "." )? IDENTIFIER "="
+                              // assignment | call ;
 
+  std::vector<StmtPtr> Block();
   StmtPtr Statement();
   StmtPtr PrintStatement();
   StmtPtr ExprStatement();

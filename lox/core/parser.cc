@@ -1,4 +1,5 @@
 #include "lox/core/parser.h"
+#include "lox/ast/expr.h"
 #include "lox/ast/stmt.h"
 #include "lox/core/lox.h"
 
@@ -74,7 +75,7 @@ void Parser::Synchronize() {
 
 // ==================== Grammar Parsing Expr Functions ====================
 
-ExprPtr Parser::Expression() { return ParseEquality(); }
+ExprPtr Parser::Expression() { return ParseAssignment(); }
 
 ExprPtr Parser::ParseEquality() {
   return ParseBinary([this]() { return ParseComparison(); },
@@ -144,10 +145,39 @@ ExprPtr Parser::ParsePrimary() {
   throw Error(Peek(), "Expect expression.");
 }
 
+ExprPtr Parser::ParseAssignment() {
+  ExprPtr expr = ParseEquality();
+
+  if (Match({TokenType::EQUAL})) {
+    Token equals_token = Previous();
+    ExprPtr value = ParseAssignment();
+
+    VariableExpr* variable = dynamic_cast<VariableExpr*>(value.get());
+    if (variable != nullptr) {
+      return std::make_unique<AssignExpr>(variable->name_, std::move(value));
+    }
+
+    throw Error(equals_token, "Invalid assignment target.");
+  }
+
+  return expr;
+}
+
 // ==================== Grammar Parsing Stmt Functions ====================
+
+std::vector<StmtPtr> Parser::Block() {
+  std::vector<StmtPtr> statements;
+  while (!Check(TokenType::RIGHT_BRACE) && !IsAtEnd()) {
+    statements.push_back(Declaration());
+  }
+  Consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+  return statements;
+}
 
 StmtPtr Parser::Statement() {
   if (Match({TokenType::PRINT})) return PrintStatement();
+  if (Match({TokenType::LEFT_BRACE}))
+    return std::make_unique<BlockStmt>(Block());
   return ExprStatement();
 }
 

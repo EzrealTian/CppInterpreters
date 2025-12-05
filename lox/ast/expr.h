@@ -78,6 +78,19 @@ class VariableExpr : public Expr {
   Token name_;
 };
 
+class AssignExpr : public Expr {
+ public:
+  AssignExpr(Token name, ExprPtr value)
+      : name_(std::move(name)), value_(std::move(value)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token name_;
+  ExprPtr value_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_EXPR_H_

@@ -1,5 +1,6 @@
 #include "lox/ast/visitors/interpreter.h"
 
+#include "lox/core/environment.h"
 #include "lox/core/lox.h"
 #include "lox/ast/visitor.h"
 #include "lox/ast/expr.h"
@@ -88,6 +89,16 @@ LoxObject Interpreter::Visit(VariableExpr& variable) {
   return environment_.Get(variable.name_);
 }
 
+LoxObject Interpreter::Visit(AssignExpr& assign) {
+  LoxObject value = Evaluate(std::move(assign.value_));
+  environment_.Assign(assign.name_, value);
+  return value;
+}
+
+void Interpreter::Visit(BlockStmt& block_stmt) {
+  ExecuteBlock(block_stmt.statements_, Environment());
+}
+
 void Interpreter::Visit(ExprStmt& expr_stmt) {
   Evaluate(std::move(expr_stmt.expr_));
 }
@@ -115,5 +126,18 @@ void Interpreter::CheckNumberOperands(Token op, LoxObject left,
 }
 
 void Interpreter::Execute(StmtPtr stmt) { stmt->Accept(*this); }
+
+void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
+                               Environment environment) {
+  Environment previous = environment_;
+  try {
+    environment_ = environment;
+    for (auto& statement : statements) {
+      Execute(std::move(statement));
+    }
+  } catch (...) {
+    environment_ = previous;
+  }
+}
 
 }  // namespace lox

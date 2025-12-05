@@ -25,6 +25,10 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   LoxObject Visit(VariableExpr& variable) override;
 
+  LoxObject Visit(AssignExpr& assign) override;
+
+  void Visit(BlockStmt& block_stmt) override;
+
   void Visit(ExprStmt& expr_stmt) override;
 
   void Visit(PrintStmt& print_stmt) override;
@@ -37,6 +41,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
   void CheckNumberOperands(Token op, LoxObject left, LoxObject right);
 
   void Execute(StmtPtr stmt);
+
+  void ExecuteBlock(std::vector<StmtPtr>& statements, Environment environment);
 
   Environment environment_;
 };
