@@ -95,6 +95,20 @@ LoxObject Interpreter::Visit(AssignExpr& assign) {
   return value;
 }
 
+LoxObject Interpreter::Visit(LogicalExpr& logical) {
+  LoxObject left = Evaluate(std::move(logical.left_));
+  if (logical.op_.type() == TokenType::AND) {
+    if (!left.isTruthy()) {
+      return left;
+    }
+  } else if (logical.op_.type() == TokenType::OR) {
+    if (left.isTruthy()) {
+      return left;
+    }
+  }
+  return Evaluate(std::move(logical.right_));
+}
+
 void Interpreter::Visit(BlockStmt& block_stmt) {
   ExecuteBlock(block_stmt.statements_, Environment());
 }
@@ -113,6 +127,20 @@ void Interpreter::Visit(VarStmt& var_stmt) {
     value = Evaluate(std::move(var_stmt.initializer_));
   }
   environment_.Define(var_stmt.name_.lexeme(), value);
+}
+
+void Interpreter::Visit(IfStmt& if_stmt) {
+  if (Evaluate(std::move(if_stmt.condition_)).isTruthy()) {
+    Execute(std::move(if_stmt.then_branch_));
+  } else if (if_stmt.else_branch_ != nullptr) {
+    Execute(std::move(if_stmt.else_branch_));
+  }
+}
+
+void Interpreter::Visit(WhileStmt& while_stmt) {
+  while (Evaluate(std::move(while_stmt.condition_)).isTruthy()) {
+    Execute(std::move(while_stmt.body_));
+  }
 }
 
 LoxObject Interpreter::Evaluate(ExprPtr expr) { return expr->Accept(*this); }

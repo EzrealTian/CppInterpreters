@@ -27,6 +27,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   LoxObject Visit(AssignExpr& assign) override;
 
+  LoxObject Visit(LogicalExpr& logical) override;
+
   void Visit(BlockStmt& block_stmt) override;
 
   void Visit(ExprStmt& expr_stmt) override;
@@ -34,6 +36,10 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
   void Visit(PrintStmt& print_stmt) override;
 
   void Visit(VarStmt& var_stmt) override;
+
+  void Visit(IfStmt& if_stmt) override;
+
+  void Visit(WhileStmt& while_stmt) override;
 
  private:
   LoxObject Evaluate(ExprPtr expr);

@@ -146,7 +146,7 @@ ExprPtr Parser::ParsePrimary() {
 }
 
 ExprPtr Parser::ParseAssignment() {
-  ExprPtr expr = ParseEquality();
+  ExprPtr expr = ParseOr();
 
   if (Match({TokenType::EQUAL})) {
     Token equals_token = Previous();
@@ -163,6 +163,26 @@ ExprPtr Parser::ParseAssignment() {
   return expr;
 }
 
+ExprPtr Parser::ParseOr() {
+  ExprPtr expr = ParseAnd();
+  while (Match({TokenType::OR})) {
+    Token op = Previous();
+    ExprPtr right = ParseAnd();
+    expr = std::make_unique<LogicalExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
+}
+
+ExprPtr Parser::ParseAnd() {
+  ExprPtr expr = ParseEquality();
+  while (Match({TokenType::AND})) {
+    Token op = Previous();
+    ExprPtr right = ParseEquality();
+    expr = std::make_unique<LogicalExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
+}
+
 // ==================== Grammar Parsing Stmt Functions ====================
 
 std::vector<StmtPtr> Parser::Block() {
@@ -175,6 +195,9 @@ std::vector<StmtPtr> Parser::Block() {
 }
 
 StmtPtr Parser::Statement() {
+  if (Match({TokenType::IF})) return IfStatement();
+  if (Match({TokenType::FOR})) return ForStatement();
+  if (Match({TokenType::WHILE})) return WhileStatement();
   if (Match({TokenType::PRINT})) return PrintStatement();
   if (Match({TokenType::LEFT_BRACE}))
     return std::make_unique<BlockStmt>(Block());
@@ -211,5 +234,67 @@ StmtPtr Parser::VarDeclaration() {
   }
   Consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
   return std::make_unique<VarStmt>(name, std::move(initializer));
+}
+
+StmtPtr Parser::IfStatement() {
+  Consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+  ExprPtr condition = Expression();
+  Consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
+  StmtPtr then_branch = Statement();
+  StmtPtr else_branch = nullptr;
+  if (Match({TokenType::ELSE})) else_branch = Statement();
+  return std::make_unique<IfStmt>(std::move(condition), std::move(then_branch),
+                                  std::move(else_branch));
+}
+
+StmtPtr Parser::WhileStatement() {
+  Consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+  ExprPtr condition = Expression();
+  Consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
+  StmtPtr body = Statement();
+  return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+}
+
+StmtPtr Parser::ForStatement() {
+  Consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
+  StmtPtr initializer = nullptr;
+  if (Match({TokenType::SEMICOLON})) {
+    initializer = nullptr;
+  } else if (Match({TokenType::VAR})) {
+    initializer = VarDeclaration();
+  } else {
+    initializer = Statement();
+  }
+
+  ExprPtr condition = nullptr;
+  if (!Check(TokenType::SEMICOLON)) {
+    condition = Expression();
+  }
+  Consume(TokenType::SEMICOLON, "Expect ';' after loop condition.");
+
+  ExprPtr increment = nullptr;
+  if (!Check(TokenType::RIGHT_PAREN)) {
+    increment = Expression();
+  }
+  Consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses.");
+  
+  StmtPtr body = Statement();
+  if (increment != nullptr) {
+    std::vector<StmtPtr> block;
+    block.push_back(std::move(body));
+    block.push_back(std::make_unique<ExprStmt>(std::move(increment)));
+    body = std::make_unique<BlockStmt>(std::move(block));
+  }
+  if (condition == nullptr) {
+    condition = std::make_unique<LiteralExpr>(LoxObject(true));
+  }
+  body = std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+  if (initializer != nullptr) {
+    std::vector<StmtPtr> block;
+    block.push_back(std::move(initializer));
+    block.push_back(std::move(body));
+    body = std::make_unique<BlockStmt>(std::move(block));
+  }
+  return body;
 }
 }  // namespace lox

@@ -53,6 +53,8 @@ class Parser {
                               // "false" | "nil" | "(" expression ")" ;
   ExprPtr ParseAssignment();  // assignment  →  ( call "." )? IDENTIFIER "="
                               // assignment | call ;
+  ExprPtr ParseOr();
+  ExprPtr ParseAnd();
 
   std::vector<StmtPtr> Block();
   StmtPtr Statement();
@@ -61,7 +63,9 @@ class Parser {
 
   StmtPtr Declaration();
   StmtPtr VarDeclaration();
-
+  StmtPtr IfStatement();
+  StmtPtr WhileStatement();
+  StmtPtr ForStatement();
  private:
   std::vector<Token> tokens_;
   int current_ = 0;

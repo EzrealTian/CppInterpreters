@@ -91,6 +91,20 @@ class AssignExpr : public Expr {
   ExprPtr value_;
 };
 
+class LogicalExpr : public Expr {
+ public:
+  LogicalExpr(ExprPtr left, Token op, ExprPtr right)
+      : left_(std::move(left)), op_(std::move(op)), right_(std::move(right)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr left_;
+  Token op_;
+  ExprPtr right_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_EXPR_H_

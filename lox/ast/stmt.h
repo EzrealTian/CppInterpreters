@@ -55,6 +55,31 @@ class VarStmt : public Stmt {
   ExprPtr initializer_;
 };
 
+class IfStmt : public Stmt {
+ public:
+  IfStmt(ExprPtr condition, StmtPtr then_branch, StmtPtr else_branch)
+      : condition_(std::move(condition)),
+        then_branch_(std::move(then_branch)),
+        else_branch_(std::move(else_branch)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  ExprPtr condition_;
+  StmtPtr then_branch_;
+  StmtPtr else_branch_;
+};
+
+class WhileStmt : public Stmt {
+ public:
+  WhileStmt(ExprPtr condition, StmtPtr body)
+      : condition_(std::move(condition)), body_(std::move(body)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  ExprPtr condition_;
+  StmtPtr body_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_STMT_H_
