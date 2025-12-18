@@ -78,24 +78,44 @@ void Parser::Synchronize() {
 ExprPtr Parser::Expression() { return ParseAssignment(); }
 
 ExprPtr Parser::ParseEquality() {
-  return ParseBinary([this]() { return ParseComparison(); },
-                     {TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL});
+  ExprPtr expr = ParseComparison();
+  while (Match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
+    Token op = Previous();
+    ExprPtr right = ParseComparison();
+    expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
 }
 
 ExprPtr Parser::ParseComparison() {
-  return ParseBinary([this]() { return ParseTerm(); },
-                     {TokenType::GREATER, TokenType::GREATER_EQUAL,
-                      TokenType::LESS, TokenType::LESS_EQUAL});
+  ExprPtr expr = ParseTerm();
+  while (Match({TokenType::GREATER, TokenType::GREATER_EQUAL,
+    TokenType::LESS, TokenType::LESS_EQUAL})) {
+    Token op = Previous();
+    ExprPtr right = ParseTerm();
+    expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
 }
 
 ExprPtr Parser::ParseTerm() {
-  return ParseBinary([this]() { return ParseFactor(); },
-                     {TokenType::MINUS, TokenType::PLUS});
+  ExprPtr expr = ParseFactor();
+  while (Match({TokenType::MINUS, TokenType::PLUS})) {
+    Token op = Previous();
+    ExprPtr right = ParseFactor();
+    expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
 }
 
 ExprPtr Parser::ParseFactor() {
-  return ParseBinary([this]() { return ParseUnary(); },
-                     {TokenType::SLASH, TokenType::STAR});
+  ExprPtr expr = ParseUnary();
+  while (Match({TokenType::SLASH, TokenType::STAR})) {
+    Token op = Previous();
+    ExprPtr right = ParseUnary();
+    expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+  }
+  return expr;
 }
 
 ExprPtr Parser::ParseBinary(std::function<ExprPtr()> next,
@@ -152,7 +172,7 @@ ExprPtr Parser::ParseAssignment() {
     Token equals_token = Previous();
     ExprPtr value = ParseAssignment();
 
-    VariableExpr* variable = dynamic_cast<VariableExpr*>(value.get());
+    VariableExpr* variable = dynamic_cast<VariableExpr*>(expr.get());
     if (variable != nullptr) {
       return std::make_unique<AssignExpr>(variable->name_, std::move(value));
     }

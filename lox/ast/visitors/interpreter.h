@@ -42,11 +42,11 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
   void Visit(WhileStmt& while_stmt) override;
 
  private:
-  LoxObject Evaluate(ExprPtr expr);
+  LoxObject Evaluate(ExprPtr& expr);
 
   void CheckNumberOperands(Token op, LoxObject left, LoxObject right);
 
-  void Execute(StmtPtr stmt);
+  void Execute(StmtPtr& stmt);
 
   void ExecuteBlock(std::vector<StmtPtr>& statements, Environment environment);
 

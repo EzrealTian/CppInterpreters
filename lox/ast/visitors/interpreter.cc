@@ -15,7 +15,7 @@ namespace lox {
 void Interpreter::Interpret(std::vector<StmtPtr> statements) {
   try {
     for (auto& statement : statements) {
-      Execute(std::move(statement));
+      Execute(statement);
     }
   } catch (const RuntimeError& error) {
     Lox::Instance().RuntimeError(error);
@@ -25,11 +25,11 @@ void Interpreter::Interpret(std::vector<StmtPtr> statements) {
 LoxObject Interpreter::Visit(LiteralExpr& expr) { return expr.value_; }
 
 LoxObject Interpreter::Visit(GroupingExpr& expr) {
-  return Evaluate(std::move(expr.expression_));
+  return Evaluate(expr.expression_);
 }
 
 LoxObject Interpreter::Visit(UnaryExpr& expr) {
-  LoxObject right = Evaluate(std::move(expr.right_));
+  LoxObject right = Evaluate(expr.right_);
   switch (expr.op_.type()) {
     case TokenType::MINUS:
       return -right.get<double>();
@@ -41,8 +41,8 @@ LoxObject Interpreter::Visit(UnaryExpr& expr) {
 }
 
 LoxObject Interpreter::Visit(BinaryExpr& expr) {
-  LoxObject left = Evaluate(std::move(expr.left_));
-  LoxObject right = Evaluate(std::move(expr.right_));
+  LoxObject left = Evaluate(expr.left_);
+  LoxObject right = Evaluate(expr.right_);
   switch (expr.op_.type()) {
     case TokenType::PLUS:
       if (left.is<double>() && right.is<double>()) {
@@ -90,13 +90,13 @@ LoxObject Interpreter::Visit(VariableExpr& variable) {
 }
 
 LoxObject Interpreter::Visit(AssignExpr& assign) {
-  LoxObject value = Evaluate(std::move(assign.value_));
+  LoxObject value = Evaluate(assign.value_);
   environment_.Assign(assign.name_, value);
   return value;
 }
 
 LoxObject Interpreter::Visit(LogicalExpr& logical) {
-  LoxObject left = Evaluate(std::move(logical.left_));
+  LoxObject left = Evaluate(logical.left_);
   if (logical.op_.type() == TokenType::AND) {
     if (!left.isTruthy()) {
       return left;
@@ -106,44 +106,44 @@ LoxObject Interpreter::Visit(LogicalExpr& logical) {
       return left;
     }
   }
-  return Evaluate(std::move(logical.right_));
+  return Evaluate(logical.right_);
 }
 
 void Interpreter::Visit(BlockStmt& block_stmt) {
-  ExecuteBlock(block_stmt.statements_, Environment());
+  ExecuteBlock(block_stmt.statements_, Environment(environment_));
 }
 
 void Interpreter::Visit(ExprStmt& expr_stmt) {
-  Evaluate(std::move(expr_stmt.expr_));
+  Evaluate(expr_stmt.expr_);
 }
 
 void Interpreter::Visit(PrintStmt& print_stmt) {
-  std::cout << Evaluate(std::move(print_stmt.expr_)).ToString() << std::endl;
+  std::cout << Evaluate(print_stmt.expr_).ToString() << std::endl;
 }
 
 void Interpreter::Visit(VarStmt& var_stmt) {
   LoxObject value = nullptr;
   if (var_stmt.initializer_ != nullptr) {
-    value = Evaluate(std::move(var_stmt.initializer_));
+    value = Evaluate(var_stmt.initializer_);
   }
   environment_.Define(var_stmt.name_.lexeme(), value);
 }
 
 void Interpreter::Visit(IfStmt& if_stmt) {
-  if (Evaluate(std::move(if_stmt.condition_)).isTruthy()) {
-    Execute(std::move(if_stmt.then_branch_));
+  if (Evaluate(if_stmt.condition_).isTruthy()) {
+    Execute(if_stmt.then_branch_);
   } else if (if_stmt.else_branch_ != nullptr) {
-    Execute(std::move(if_stmt.else_branch_));
+    Execute(if_stmt.else_branch_);
   }
 }
 
 void Interpreter::Visit(WhileStmt& while_stmt) {
-  while (Evaluate(std::move(while_stmt.condition_)).isTruthy()) {
-    Execute(std::move(while_stmt.body_));
+  while (Evaluate(while_stmt.condition_).isTruthy()) {
+    Execute(while_stmt.body_);
   }
 }
 
-LoxObject Interpreter::Evaluate(ExprPtr expr) { return expr->Accept(*this); }
+LoxObject Interpreter::Evaluate(ExprPtr& expr) { return expr->Accept(*this); }
 
 void Interpreter::CheckNumberOperands(Token op, LoxObject left,
                                       LoxObject right) {
@@ -153,7 +153,7 @@ void Interpreter::CheckNumberOperands(Token op, LoxObject left,
   throw RuntimeError(op, "Operands must be numbers.");
 }
 
-void Interpreter::Execute(StmtPtr stmt) { stmt->Accept(*this); }
+void Interpreter::Execute(StmtPtr& stmt) { stmt->Accept(*this); }
 
 void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
                                Environment environment) {
@@ -161,7 +161,7 @@ void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
   try {
     environment_ = environment;
     for (auto& statement : statements) {
-      Execute(std::move(statement));
+      Execute(statement);
     }
   } catch (...) {
     environment_ = previous;
