@@ -7,6 +7,7 @@
 #include "lox/ast/stmt.h"
 #include "lox/util/lox_object.h"
 #include "lox/util/runtime_error.h"
+#include "lox/util/break_exception.h"
 
 #include <vector>
 
@@ -139,8 +140,17 @@ void Interpreter::Visit(IfStmt& if_stmt) {
 
 void Interpreter::Visit(WhileStmt& while_stmt) {
   while (Evaluate(while_stmt.condition_).isTruthy()) {
-    Execute(while_stmt.body_);
+    try {
+      Execute(while_stmt.body_);
+    } catch (const BreakException&) {
+      break;
+    }
   }
+}
+
+void Interpreter::Visit(BreakStmt& break_stmt) {
+  (void)break_stmt;  // 未使用参数
+  throw BreakException();
 }
 
 LoxObject Interpreter::Evaluate(ExprPtr& expr) { return expr->Accept(*this); }
@@ -163,8 +173,12 @@ void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
     for (auto& statement : statements) {
       Execute(statement);
     }
+  } catch (const BreakException&) {
+    environment_ = previous;
+    throw;  // 重新抛出 BreakException，让外层循环处理
   } catch (...) {
     environment_ = previous;
+    throw;  // 重新抛出其他异常
   }
 }
 

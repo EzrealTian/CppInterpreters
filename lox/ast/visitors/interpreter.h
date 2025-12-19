@@ -41,6 +41,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   void Visit(WhileStmt& while_stmt) override;
 
+  void Visit(BreakStmt& break_stmt) override;
+
  private:
   LoxObject Evaluate(ExprPtr& expr);
 

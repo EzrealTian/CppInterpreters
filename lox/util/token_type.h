@@ -52,6 +52,7 @@ enum class TokenType {
   TRUE,
   VAR,
   WHILE,
+  BREAK,
 
   // end of file
   EEOF

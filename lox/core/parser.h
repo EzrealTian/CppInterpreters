@@ -66,6 +66,7 @@ class Parser {
   StmtPtr IfStatement();
   StmtPtr WhileStatement();
   StmtPtr ForStatement();
+  StmtPtr BreakStatement();
  private:
   std::vector<Token> tokens_;
   int current_ = 0;

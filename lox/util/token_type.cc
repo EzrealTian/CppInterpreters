@@ -89,7 +89,8 @@ std::string tokenTypeToString(TokenType type) {
       return "VAR";
     case TokenType::WHILE:
       return "WHILE";
-
+    case TokenType::BREAK:
+      return "BREAK";
     // end of file
     case TokenType::EEOF:
       return "EOF";
@@ -109,6 +110,7 @@ TokenType stringToTokenType(const std::string& str) {
       {"false", TokenType::FALSE}, {"for", TokenType::FOR},
       {"while", TokenType::WHILE}, {"nil", TokenType::NIL},
       {"print", TokenType::PRINT}, {"var", TokenType::VAR},
+      {"break", TokenType::BREAK},
   };
   return string_to_token_type.find(str) != string_to_token_type.end()
              ? string_to_token_type[str]

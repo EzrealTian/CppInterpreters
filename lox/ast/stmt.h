@@ -80,6 +80,13 @@ class WhileStmt : public Stmt {
   StmtPtr body_;
 };
 
+class BreakStmt : public Stmt {
+ public:
+  BreakStmt() = default;
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_STMT_H_
