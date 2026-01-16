@@ -11,6 +11,7 @@ class GroupingExpr;
 class VariableExpr;
 class AssignExpr;
 class LogicalExpr;
+class CallExpr;
 class ExprVisitor {
  public:
   virtual ~ExprVisitor() = default;
@@ -22,6 +23,7 @@ class ExprVisitor {
   virtual LoxObject Visit(VariableExpr& variable) = 0;
   virtual LoxObject Visit(AssignExpr& assign) = 0;
   virtual LoxObject Visit(LogicalExpr& logical) = 0;
+  virtual LoxObject Visit(CallExpr& call) = 0;
 };
 
 class BlockStmt;
@@ -31,6 +33,7 @@ class VarStmt;
 class IfStmt;
 class WhileStmt;
 class BreakStmt;
+class FunctionStmt;
 class StmtVisitor {
  public:
   virtual ~StmtVisitor() = default;
@@ -42,6 +45,7 @@ class StmtVisitor {
   virtual void Visit(IfStmt& if_stmt) = 0;
   virtual void Visit(WhileStmt& while_stmt) = 0;
   virtual void Visit(BreakStmt& break_stmt) = 0;
+  virtual void Visit(FunctionStmt& function_stmt) = 0;
 };
 
 }  // namespace lox

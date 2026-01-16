@@ -8,10 +8,16 @@
 #include "lox/util/lox_object.h"
 #include "lox/util/runtime_error.h"
 #include "lox/util/break_exception.h"
+#include "lox/util/lox_callable.h"
 
 #include <vector>
 
 namespace lox {
+Interpreter::Interpreter() : global_env_() {
+  global_env_.Define("clock", LoxObject(std::make_shared<ClockCallable>()));
+
+  environment_ = global_env_;
+}
 
 void Interpreter::Interpret(std::vector<StmtPtr> statements) {
   try {
@@ -114,9 +120,7 @@ void Interpreter::Visit(BlockStmt& block_stmt) {
   ExecuteBlock(block_stmt.statements_, Environment(environment_));
 }
 
-void Interpreter::Visit(ExprStmt& expr_stmt) {
-  Evaluate(expr_stmt.expr_);
-}
+void Interpreter::Visit(ExprStmt& expr_stmt) { Evaluate(expr_stmt.expr_); }
 
 void Interpreter::Visit(PrintStmt& print_stmt) {
   std::cout << Evaluate(print_stmt.expr_).ToString() << std::endl;
@@ -151,6 +155,33 @@ void Interpreter::Visit(WhileStmt& while_stmt) {
 void Interpreter::Visit(BreakStmt& break_stmt) {
   (void)break_stmt;  // 未使用参数
   throw BreakException();
+}
+
+void Interpreter::Visit(FunctionStmt& function_stmt) {
+  std::string function_name = function_stmt.name_.lexeme();
+  LoxObject function =
+      LoxObject(std::make_shared<FunctionCallable>(std::move(function_stmt)));
+  environment_.Define(function_name, function);
+}
+
+LoxObject Interpreter::Visit(CallExpr& call) {
+  LoxObject callee = Evaluate(call.callee_);
+  std::vector<LoxObject> arguments;
+  for (auto& argument : call.arguments_) {
+    arguments.push_back(Evaluate(argument));
+  }
+  if (!callee.is<LoxCallable>()) {
+    throw RuntimeError(call.paren_, "Can only call functions and classes.");
+  }
+
+  LoxCallable& callable = *callee.get<std::shared_ptr<LoxCallable>>();
+  if (callable.arity() != arguments.size()) {
+    throw RuntimeError(call.paren_, "Expected " +
+                                        std::to_string(callable.arity()) +
+                                        " arguments but got " +
+                                        std::to_string(arguments.size()));
+  }
+  return callable(*this, std::move(arguments));
 }
 
 LoxObject Interpreter::Evaluate(ExprPtr& expr) { return expr->Accept(*this); }

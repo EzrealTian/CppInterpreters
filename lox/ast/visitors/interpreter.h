@@ -11,8 +11,15 @@
 
 namespace lox {
 
+// 前向声明
+class FunctionCallable;
+
 class Interpreter : public ExprVisitor, public StmtVisitor {
+  friend class FunctionCallable;
+
  public:
+  Interpreter();
+
   void Interpret(std::vector<StmtPtr> statements);
 
   LoxObject Visit(LiteralExpr& expr) override;
@@ -29,6 +36,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   LoxObject Visit(LogicalExpr& logical) override;
 
+  LoxObject Visit(CallExpr& call) override;
+
   void Visit(BlockStmt& block_stmt) override;
 
   void Visit(ExprStmt& expr_stmt) override;
@@ -43,6 +52,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   void Visit(BreakStmt& break_stmt) override;
 
+  void Visit(FunctionStmt& function_stmt) override;
+
  private:
   LoxObject Evaluate(ExprPtr& expr);
 
@@ -52,6 +63,7 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   void ExecuteBlock(std::vector<StmtPtr>& statements, Environment environment);
 
+  Environment global_env_;
   Environment environment_;
 };
 

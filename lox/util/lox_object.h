@@ -4,13 +4,19 @@
 #include <string>
 #include <variant>
 #include <iostream>
+#include <memory>
+#include <type_traits>
 
 namespace lox {
 
-using LoxValue = std::variant<std::string,    // string
-                              double,         // number
-                              bool,           // boolean
-                              std::nullptr_t  // nil
+// 前向声明
+class LoxCallable;
+
+using LoxValue = std::variant<std::string,                  // string
+                              double,                       // number
+                              bool,                         // boolean
+                              std::nullptr_t,               // nil
+                              std::shared_ptr<LoxCallable>  // callable
                               >;
 
 // type index constant
@@ -19,6 +25,7 @@ constexpr size_t STRING = 0;
 constexpr size_t NUMBER = 1;
 constexpr size_t BOOLEAN = 2;
 constexpr size_t NIL = 3;
+constexpr size_t CALLABLE = 4;
 }  // namespace TypeIndex
 
 class LoxObject {
@@ -33,6 +40,8 @@ class LoxObject {
   LoxObject(int num) : value_(static_cast<double>(num)) {}
   LoxObject(bool b) : value_(b) {}
   LoxObject(std::nullptr_t) : value_(nullptr) {}
+  LoxObject(std::shared_ptr<LoxCallable> callable)
+      : value_(std::move(callable)) {}
 
   // assignment operator
   LoxObject& operator=(const std::string& str) {
@@ -65,16 +74,29 @@ class LoxObject {
     return *this;
   }
 
+  LoxObject& operator=(std::shared_ptr<LoxCallable> callable) {
+    value_ = std::move(callable);
+    return *this;
+  }
+
   // get value (type safe)
   template <typename T>
   T get() const {
-    return std::get<T>(value_);
+    if constexpr (std::is_same_v<T, LoxCallable>) {
+      return *std::get<std::shared_ptr<LoxCallable>>(value_);
+    } else {
+      return std::get<T>(value_);
+    }
   }
 
   // check type
   template <typename T>
   bool is() const {
-    return std::holds_alternative<T>(value_);
+    if constexpr (std::is_same_v<T, LoxCallable>) {
+      return std::holds_alternative<std::shared_ptr<LoxCallable>>(value_);
+    } else {
+      return std::holds_alternative<T>(value_);
+    }
   }
 
   // get index (faster)

@@ -87,6 +87,21 @@ class BreakStmt : public Stmt {
   void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
 };
 
+class FunctionStmt : public Stmt {
+ public:
+  FunctionStmt(Token name, std::vector<Token> parameters,
+               std::vector<StmtPtr> body)
+      : name_(std::move(name)),
+        parameters_(std::move(parameters)),
+        body_(std::move(body)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  Token name_;
+  std::vector<Token> parameters_;
+  std::vector<StmtPtr> body_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_STMT_H_

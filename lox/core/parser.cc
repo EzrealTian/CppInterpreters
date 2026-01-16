@@ -2,6 +2,7 @@
 #include "lox/ast/expr.h"
 #include "lox/ast/stmt.h"
 #include "lox/core/lox.h"
+#include "lox/util/token_type.h"
 
 namespace lox {
 
@@ -73,6 +74,21 @@ void Parser::Synchronize() {
   }
 }
 
+ExprPtr Parser::FinishCall(ExprPtr callee) {
+  std::vector<ExprPtr> arguments;
+  if (!Check(TokenType::RIGHT_PAREN)) {
+    do {
+      if (arguments.size() >= 255) {
+        Error(Peek(), "Can't have more than 255 arguments.");
+      }
+      arguments.push_back(Expression());
+    } while (Match({TokenType::COMMA}));
+  }
+  Token paren = Consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+  return std::make_unique<CallExpr>(std::move(callee), paren,
+                                    std::move(arguments));
+}
+
 // ==================== Grammar Parsing Expr Functions ====================
 
 ExprPtr Parser::Expression() { return ParseAssignment(); }
@@ -89,8 +105,8 @@ ExprPtr Parser::ParseEquality() {
 
 ExprPtr Parser::ParseComparison() {
   ExprPtr expr = ParseTerm();
-  while (Match({TokenType::GREATER, TokenType::GREATER_EQUAL,
-    TokenType::LESS, TokenType::LESS_EQUAL})) {
+  while (Match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS,
+                TokenType::LESS_EQUAL})) {
     Token op = Previous();
     ExprPtr right = ParseTerm();
     expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
@@ -135,7 +151,19 @@ ExprPtr Parser::ParseUnary() {
     ExprPtr right = ParseUnary();
     return std::make_unique<UnaryExpr>(op, std::move(right));
   }
-  return ParsePrimary();
+  return ParseCall();
+}
+
+ExprPtr Parser::ParseCall() {
+  ExprPtr expr = ParsePrimary();
+  while (true) {
+    if (Match({TokenType::LEFT_PAREN})) {
+      expr = FinishCall(std::move(expr));
+    } else {
+      break;
+    }
+  }
+  return expr;
 }
 
 ExprPtr Parser::ParsePrimary() {
@@ -244,6 +272,7 @@ StmtPtr Parser::BreakStatement() {
 
 StmtPtr Parser::Declaration() {
   try {
+    if (Match({TokenType::FUN})) return FuncDeclaration("function");
     if (Match({TokenType::VAR})) return VarDeclaration();
     return Statement();
   } catch (const ParseError& error) {
@@ -260,6 +289,26 @@ StmtPtr Parser::VarDeclaration() {
   }
   Consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
   return std::make_unique<VarStmt>(name, std::move(initializer));
+}
+
+StmtPtr Parser::FuncDeclaration(std::string kind) {
+  Token name = Consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+  Consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+  std::vector<Token> parameters;
+  if (!Check(TokenType::RIGHT_PAREN)) {
+    do {
+      if (parameters.size() >= 255) {
+        Error(Peek(), "Can't have more than 255 parameters.");
+      }
+      parameters.push_back(
+          Consume(TokenType::IDENTIFIER, "Expect parameter name."));
+    } while (Match({TokenType::COMMA}));
+  }
+  Consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+  Consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+  std::vector<StmtPtr> body = Block();
+  return std::make_unique<FunctionStmt>(std::move(name), std::move(parameters),
+                                        std::move(body));
 }
 
 StmtPtr Parser::IfStatement() {
@@ -303,7 +352,7 @@ StmtPtr Parser::ForStatement() {
     increment = Expression();
   }
   Consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses.");
-  
+
   StmtPtr body = Statement();
   if (increment != nullptr) {
     std::vector<StmtPtr> block;

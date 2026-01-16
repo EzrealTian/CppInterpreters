@@ -37,6 +37,7 @@ class Parser {
   Token Consume(TokenType type, const std::string& message);
   ParseError Error(Token token, const std::string& message);
   void Synchronize();
+  ExprPtr FinishCall(ExprPtr callee);
 
   // Grammar parsing functions
   ExprPtr Expression();
@@ -48,7 +49,8 @@ class Parser {
   ExprPtr ParseFactor();      // factor  →  unary ( ( "/" | "*" ) unary )* ;
   ExprPtr ParseBinary(std::function<ExprPtr()> next,
                       std::initializer_list<TokenType> types);
-  ExprPtr ParseUnary();       // unary  →  ( "!" | "-" ) unary | primary ;
+  ExprPtr ParseUnary();       // unary  →  ( "!" | "-" ) unary | call ;
+  ExprPtr ParseCall();        // call  →  primary ( "(" arguments? ")" )* ;
   ExprPtr ParsePrimary();     // primary  →  NUMBER | STRING | "true" |
                               // "false" | "nil" | "(" expression ")" ;
   ExprPtr ParseAssignment();  // assignment  →  ( call "." )? IDENTIFIER "="
@@ -63,10 +65,12 @@ class Parser {
 
   StmtPtr Declaration();
   StmtPtr VarDeclaration();
+  StmtPtr FuncDeclaration(std::string kind);
   StmtPtr IfStatement();
   StmtPtr WhileStatement();
   StmtPtr ForStatement();
   StmtPtr BreakStatement();
+
  private:
   std::vector<Token> tokens_;
   int current_ = 0;
