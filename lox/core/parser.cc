@@ -248,6 +248,7 @@ StmtPtr Parser::Statement() {
   if (Match({TokenType::WHILE})) return WhileStatement();
   if (Match({TokenType::BREAK})) return BreakStatement();
   if (Match({TokenType::PRINT})) return PrintStatement();
+  if (Match({TokenType::RETURN})) return ReturnStatement();
   if (Match({TokenType::LEFT_BRACE}))
     return std::make_unique<BlockStmt>(Block());
   return ExprStatement();
@@ -257,6 +258,16 @@ StmtPtr Parser::PrintStatement() {
   ExprPtr value = Expression();
   Consume(TokenType::SEMICOLON, "Expect ';' after value.");
   return std::make_unique<PrintStmt>(std::move(value));
+}
+
+StmtPtr Parser::ReturnStatement() {
+  Token keyword = Previous();
+  ExprPtr value = nullptr;
+  if (!Check(TokenType::SEMICOLON)) {
+    value = Expression();
+  }
+  Consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+  return std::make_unique<ReturnStmt>(keyword, std::move(value));
 }
 
 StmtPtr Parser::ExprStatement() {

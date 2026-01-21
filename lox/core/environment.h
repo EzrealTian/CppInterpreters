@@ -12,33 +12,20 @@ namespace lox {
 
 class Environment {
  public:
-  Environment() = default;
-  explicit Environment(std::unique_ptr<Environment> enclosing)
+  Environment() : enclosing_(nullptr) {}
+  explicit Environment(std::shared_ptr<Environment> enclosing)
       : enclosing_(std::move(enclosing)) {}
-  Environment(const Environment& other) : values_(other.values_) {
-    if (other.enclosing_) {
-      enclosing_ = std::make_unique<Environment>(*other.enclosing_);
-    }
-  }
-  Environment& operator=(const Environment& other) {
-    if (this == &other) {
-      return *this;
-    }
-    values_ = other.values_;
-    if (other.enclosing_) {
-      enclosing_ = std::make_unique<Environment>(*other.enclosing_);
-    } else {
-      enclosing_.reset();
-    }
-    return *this;
-  }
+
+  // 使用默认的拷贝和移动语义，shared_ptr 会处理引用计数
+  Environment(const Environment&) = default;
+  Environment& operator=(const Environment&) = default;
   Environment(Environment&&) = default;
   Environment& operator=(Environment&&) = default;
   ~Environment() = default;
 
   LoxObject Get(const Token& name) {
     if (values_.find(name.lexeme()) != values_.end()) {
-      return values_[name.lexeme()];
+      return values_.at(name.lexeme());
     }
     if (enclosing_ != nullptr) {
       return enclosing_->Get(name);
@@ -64,7 +51,7 @@ class Environment {
 
  private:
   std::unordered_map<std::string, LoxObject> values_;
-  std::unique_ptr<Environment> enclosing_;
+  std::shared_ptr<Environment> enclosing_;
 };
 
 }  // namespace lox

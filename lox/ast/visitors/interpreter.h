@@ -54,6 +54,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   void Visit(FunctionStmt& function_stmt) override;
 
+  void Visit(ReturnStmt& return_stmt) override;
+
  private:
   LoxObject Evaluate(ExprPtr& expr);
 
@@ -61,10 +63,11 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   void Execute(StmtPtr& stmt);
 
-  void ExecuteBlock(std::vector<StmtPtr>& statements, Environment environment);
+  void ExecuteBlock(std::vector<StmtPtr>& statements,
+                    std::shared_ptr<Environment> environment);
 
-  Environment global_env_;
-  Environment environment_;
+  std::shared_ptr<Environment> global_env_;
+  std::shared_ptr<Environment> environment_;
 };
 
 }  // namespace lox

@@ -34,6 +34,7 @@ class IfStmt;
 class WhileStmt;
 class BreakStmt;
 class FunctionStmt;
+class ReturnStmt;
 class StmtVisitor {
  public:
   virtual ~StmtVisitor() = default;
@@ -46,6 +47,7 @@ class StmtVisitor {
   virtual void Visit(WhileStmt& while_stmt) = 0;
   virtual void Visit(BreakStmt& break_stmt) = 0;
   virtual void Visit(FunctionStmt& function_stmt) = 0;
+  virtual void Visit(ReturnStmt& return_stmt) = 0;
 };
 
 }  // namespace lox

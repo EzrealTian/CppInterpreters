@@ -102,6 +102,17 @@ class FunctionStmt : public Stmt {
   std::vector<StmtPtr> body_;
 };
 
+class ReturnStmt : public Stmt {
+ public:
+  ReturnStmt(Token keyword, ExprPtr value)
+      : keyword_(std::move(keyword)), value_(std::move(value)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  Token keyword_;
+  ExprPtr value_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_STMT_H_

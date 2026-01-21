@@ -70,6 +70,7 @@ class Parser {
   StmtPtr WhileStatement();
   StmtPtr ForStatement();
   StmtPtr BreakStatement();
+  StmtPtr ReturnStatement();
 
  private:
   std::vector<Token> tokens_;

@@ -9,14 +9,14 @@
 #include "lox/util/runtime_error.h"
 #include "lox/util/break_exception.h"
 #include "lox/util/lox_callable.h"
+#include "lox/util/return_exception.h"
 
 #include <vector>
 
 namespace lox {
-Interpreter::Interpreter() : global_env_() {
-  global_env_.Define("clock", LoxObject(std::make_shared<ClockCallable>()));
-
-  environment_ = global_env_;
+Interpreter::Interpreter()
+    : global_env_(std::make_shared<Environment>()), environment_(global_env_) {
+  global_env_->Define("clock", LoxObject(std::make_shared<ClockCallable>()));
 }
 
 void Interpreter::Interpret(std::vector<StmtPtr> statements) {
@@ -93,12 +93,12 @@ LoxObject Interpreter::Visit(BinaryExpr& expr) {
 }
 
 LoxObject Interpreter::Visit(VariableExpr& variable) {
-  return environment_.Get(variable.name_);
+  return environment_->Get(variable.name_);
 }
 
 LoxObject Interpreter::Visit(AssignExpr& assign) {
   LoxObject value = Evaluate(assign.value_);
-  environment_.Assign(assign.name_, value);
+  environment_->Assign(assign.name_, value);
   return value;
 }
 
@@ -117,7 +117,8 @@ LoxObject Interpreter::Visit(LogicalExpr& logical) {
 }
 
 void Interpreter::Visit(BlockStmt& block_stmt) {
-  ExecuteBlock(block_stmt.statements_, Environment(environment_));
+  ExecuteBlock(block_stmt.statements_,
+               std::make_shared<Environment>(environment_));
 }
 
 void Interpreter::Visit(ExprStmt& expr_stmt) { Evaluate(expr_stmt.expr_); }
@@ -131,7 +132,7 @@ void Interpreter::Visit(VarStmt& var_stmt) {
   if (var_stmt.initializer_ != nullptr) {
     value = Evaluate(var_stmt.initializer_);
   }
-  environment_.Define(var_stmt.name_.lexeme(), value);
+  environment_->Define(var_stmt.name_.lexeme(), value);
 }
 
 void Interpreter::Visit(IfStmt& if_stmt) {
@@ -159,9 +160,17 @@ void Interpreter::Visit(BreakStmt& break_stmt) {
 
 void Interpreter::Visit(FunctionStmt& function_stmt) {
   std::string function_name = function_stmt.name_.lexeme();
-  LoxObject function =
-      LoxObject(std::make_shared<FunctionCallable>(std::move(function_stmt)));
-  environment_.Define(function_name, function);
+  LoxObject function = LoxObject(std::make_shared<FunctionCallable>(
+      std::move(function_stmt), environment_));
+  environment_->Define(function_name, function);
+}
+
+void Interpreter::Visit(ReturnStmt& return_stmt) {
+  LoxObject value = nullptr;
+  if (return_stmt.value_ != nullptr) {
+    value = Evaluate(return_stmt.value_);
+  }
+  throw ReturnException(value);
 }
 
 LoxObject Interpreter::Visit(CallExpr& call) {
@@ -197,20 +206,18 @@ void Interpreter::CheckNumberOperands(Token op, LoxObject left,
 void Interpreter::Execute(StmtPtr& stmt) { stmt->Accept(*this); }
 
 void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
-                               Environment environment) {
-  Environment previous = environment_;
+                               std::shared_ptr<Environment> environment) {
+  std::shared_ptr<Environment> previous = environment_;
   try {
     environment_ = environment;
     for (auto& statement : statements) {
       Execute(statement);
     }
-  } catch (const BreakException&) {
-    environment_ = previous;
-    throw;  // 重新抛出 BreakException，让外层循环处理
   } catch (...) {
     environment_ = previous;
-    throw;  // 重新抛出其他异常
+    throw;
   }
+  environment_ = previous;
 }
 
 }  // namespace lox

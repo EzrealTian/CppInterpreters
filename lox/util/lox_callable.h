@@ -6,6 +6,7 @@
 
 #include "lox/util/lox_object.h"
 #include "lox/ast/visitors/interpreter.h"
+#include "lox/util/return_exception.h"
 // #include <memory>
 
 namespace lox {
@@ -42,16 +43,22 @@ class ClockCallable : public LoxCallable {
 
 class FunctionCallable : public LoxCallable {
  public:
-  FunctionCallable(FunctionStmt&& function_stmt)
-      : function_stmt_(std::move(function_stmt)) {}
+  FunctionCallable(FunctionStmt&& function_stmt,
+                   std::shared_ptr<Environment> closure)
+      : function_stmt_(std::move(function_stmt)),
+        closure_(std::move(closure)) {}
   ~FunctionCallable() = default;
   LoxObject operator()(Interpreter& interpreter,
                        std::vector<LoxObject> arguments) override {
-    Environment environment(interpreter.global_env_);
+    auto environment = std::make_shared<Environment>(closure_);
     for (size_t i = 0; i < function_stmt_.parameters_.size(); i++) {
-      environment.Define(function_stmt_.parameters_[i].lexeme(), arguments[i]);
+      environment->Define(function_stmt_.parameters_[i].lexeme(), arguments[i]);
     }
-    interpreter.ExecuteBlock(function_stmt_.body_, environment);
+    try {
+      interpreter.ExecuteBlock(function_stmt_.body_, environment);
+    } catch (const ReturnException& return_exception) {
+      return return_exception.value_;
+    }
     return nullptr;
   }
   size_t arity() override { return function_stmt_.parameters_.size(); }
@@ -61,6 +68,7 @@ class FunctionCallable : public LoxCallable {
 
  private:
   FunctionStmt function_stmt_;
+  std::shared_ptr<Environment> closure_;
 };
 
 }  // namespace lox
