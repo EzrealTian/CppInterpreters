@@ -93,12 +93,17 @@ LoxObject Interpreter::Visit(BinaryExpr& expr) {
 }
 
 LoxObject Interpreter::Visit(VariableExpr& variable) {
-  return environment_->Get(variable.name_);
+  return LookUpVariable(variable.name_, &variable);
 }
 
 LoxObject Interpreter::Visit(AssignExpr& assign) {
   LoxObject value = Evaluate(assign.value_);
-  environment_->Assign(assign.name_, value);
+  if (locals_.find(&assign) != locals_.end()) {
+    int distance = locals_.at(&assign);
+    environment_->AssignAt(assign.name_.lexeme(), value, distance);
+  } else {
+    global_env_->Assign(assign.name_, value);
+  }
   return value;
 }
 
@@ -218,6 +223,18 @@ void Interpreter::ExecuteBlock(std::vector<StmtPtr>& statements,
     throw;
   }
   environment_ = previous;
+}
+
+void Interpreter::Resolve(const Expr& expression, int depth) {
+  locals_[&expression] = depth;
+}
+
+LoxObject Interpreter::LookUpVariable(const Token& name, const Expr* expr) {
+  if (locals_.find(expr) != locals_.end()) {
+    int distance = locals_.at(expr);
+    return environment_->GetAt(name.lexeme(), distance);
+  }
+  return global_env_->Get(name);
 }
 
 }  // namespace lox

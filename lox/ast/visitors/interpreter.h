@@ -13,9 +13,11 @@ namespace lox {
 
 // 前向声明
 class FunctionCallable;
+class Resolver;
 
 class Interpreter : public ExprVisitor, public StmtVisitor {
   friend class FunctionCallable;
+  friend class Resolver;
 
  public:
   Interpreter();
@@ -66,8 +68,13 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
   void ExecuteBlock(std::vector<StmtPtr>& statements,
                     std::shared_ptr<Environment> environment);
 
+  void Resolve(const Expr& expression, int depth);
+
+  LoxObject LookUpVariable(const Token& name, const Expr* expr);
+
   std::shared_ptr<Environment> global_env_;
   std::shared_ptr<Environment> environment_;
+  std::unordered_map<const Expr*, int> locals_;
 };
 
 }  // namespace lox

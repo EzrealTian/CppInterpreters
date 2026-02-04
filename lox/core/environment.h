@@ -33,6 +33,13 @@ class Environment {
     throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
   }
 
+  LoxObject GetAt(const std::string& name, int distance) {
+    if (distance == 0) {
+      return values_.at(name);
+    }
+    return Ancestor(distance)->values_.at(name);
+  }
+
   void Assign(const Token& name, const LoxObject& value) {
     if (values_.find(name.lexeme()) != values_.end()) {
       values_[name.lexeme()] = value;
@@ -45,8 +52,28 @@ class Environment {
     throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
   }
 
+  void AssignAt(const std::string& name, const LoxObject& value, int distance) {
+    if (distance == 0) {
+      values_[name] = value;
+      return;
+    }
+    Ancestor(distance)->values_[name] = value;
+  }
+
   void Define(const std::string& name, const LoxObject& value) {
     values_[name] = value;
+  }
+
+  std::shared_ptr<Environment> Ancestor(int distance) {
+    // distance 表示从当前环境向上几层
+    // distance 1 = enclosing_, distance 2 = enclosing_->enclosing_, etc.
+    // 注意：distance 0 应该由 GetAt/AssignAt 直接处理，不应该调用 Ancestor(0)
+    std::shared_ptr<Environment> environment = enclosing_;
+    for (int i = 1; i < distance; i++) {
+      if (environment == nullptr) break;
+      environment = environment->enclosing_;
+    }
+    return environment;
   }
 
  private:

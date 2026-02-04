@@ -10,6 +10,7 @@
 #include "lox/core/token.h"
 #include "lox/core/scanner.h"
 #include "lox/core/parser.h"
+#include "lox/core/resolver.h"
 #include "lox/ast/visitors/interpreter.h"
 
 namespace lox {
@@ -42,12 +43,18 @@ void Lox::run(const std::string& source) {
   std::vector<Token> tokens = scanner.ScanTokens();
   Parser parser(tokens);
   std::vector<StmtPtr> statements = parser.Parse();
-
   if (has_error_) {
     return;
   }
 
   static Interpreter interpreter;
+
+  Resolver resolver(interpreter);
+  resolver.Resolve(statements);
+  if (has_error_) {
+    return;
+  }
+
   interpreter.Interpret(std::move(statements));
 }
 
