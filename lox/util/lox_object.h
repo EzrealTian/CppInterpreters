@@ -11,12 +11,16 @@ namespace lox {
 
 // 前向声明
 class LoxCallable;
+class LoxClass;
+class LoxInstance;
 
-using LoxValue = std::variant<std::string,                  // string
-                              double,                       // number
-                              bool,                         // boolean
-                              std::nullptr_t,               // nil
-                              std::shared_ptr<LoxCallable>  // callable
+using LoxValue = std::variant<std::string,                   // string
+                              double,                        // number
+                              bool,                          // boolean
+                              std::nullptr_t,                // nil
+                              std::shared_ptr<LoxCallable>,  // callable
+                              std::shared_ptr<LoxClass>,     // class
+                              std::shared_ptr<LoxInstance>   // instance
                               >;
 
 // type index constant
@@ -26,6 +30,8 @@ constexpr size_t NUMBER = 1;
 constexpr size_t BOOLEAN = 2;
 constexpr size_t NIL = 3;
 constexpr size_t CALLABLE = 4;
+constexpr size_t CLASS = 5;
+constexpr size_t INSTANCE = 6;
 }  // namespace TypeIndex
 
 class LoxObject {
@@ -42,6 +48,9 @@ class LoxObject {
   LoxObject(std::nullptr_t) : value_(nullptr) {}
   LoxObject(std::shared_ptr<LoxCallable> callable)
       : value_(std::move(callable)) {}
+  LoxObject(std::shared_ptr<LoxClass> klass) : value_(std::move(klass)) {}
+  LoxObject(std::shared_ptr<LoxInstance> instance)
+      : value_(std::move(instance)) {}
 
   // assignment operator
   LoxObject& operator=(const std::string& str) {
@@ -79,11 +88,24 @@ class LoxObject {
     return *this;
   }
 
+  LoxObject& operator=(std::shared_ptr<LoxClass> klass) {
+    value_ = std::move(klass);
+    return *this;
+  }
+  LoxObject& operator=(std::shared_ptr<LoxInstance> instance) {
+    value_ = std::move(instance);
+    return *this;
+  }
+
   // get value (type safe)
   template <typename T>
   T get() const {
     if constexpr (std::is_same_v<T, LoxCallable>) {
       return *std::get<std::shared_ptr<LoxCallable>>(value_);
+    } else if constexpr (std::is_same_v<T, LoxClass>) {
+      return *std::get<std::shared_ptr<LoxClass>>(value_);
+    } else if constexpr (std::is_same_v<T, LoxInstance>) {
+      return *std::get<std::shared_ptr<LoxInstance>>(value_);
     } else {
       return std::get<T>(value_);
     }
@@ -94,6 +116,10 @@ class LoxObject {
   bool is() const {
     if constexpr (std::is_same_v<T, LoxCallable>) {
       return std::holds_alternative<std::shared_ptr<LoxCallable>>(value_);
+    } else if constexpr (std::is_same_v<T, LoxClass>) {
+      return std::holds_alternative<std::shared_ptr<LoxClass>>(value_);
+    } else if constexpr (std::is_same_v<T, LoxInstance>) {
+      return std::holds_alternative<std::shared_ptr<LoxInstance>>(value_);
     } else {
       return std::holds_alternative<T>(value_);
     }

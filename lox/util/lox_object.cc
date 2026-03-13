@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "lox/util/lox_object.h"
+#include "lox/util/lox_class.h"
 #include "lox/util/lox_callable.h"
 
 namespace lox {
@@ -26,7 +27,11 @@ std::string LoxObject::ToString() const {
     case TypeIndex::NIL:
       return "nil";
     case TypeIndex::CALLABLE:
-      return "<callable>";
+      return std::get<std::shared_ptr<LoxCallable>>(value_)->ToString();
+    case TypeIndex::CLASS:
+      return std::get<std::shared_ptr<LoxClass>>(value_)->ToString();
+    case TypeIndex::INSTANCE:
+      return std::get<std::shared_ptr<LoxInstance>>(value_)->ToString();
     default:
       return "";
   }
@@ -43,6 +48,10 @@ bool LoxObject::isTruthy() const {
     case TypeIndex::NIL:
       return false;
     case TypeIndex::CALLABLE:
+      return true;
+    case TypeIndex::CLASS:
+      return true;
+    case TypeIndex::INSTANCE:
       return true;
     default:
       return false;
@@ -61,6 +70,10 @@ std::string LoxObject::typeName() const {
       return "nil";
     case TypeIndex::CALLABLE:
       return "callable";
+    case TypeIndex::CLASS:
+      return "class";
+    case TypeIndex::INSTANCE:
+      return "instance";
     default:
       return "unknown";
   }

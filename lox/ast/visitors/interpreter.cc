@@ -10,6 +10,7 @@
 #include "lox/util/break_exception.h"
 #include "lox/util/lox_callable.h"
 #include "lox/util/return_exception.h"
+#include "lox/util/lox_class.h"
 
 #include <vector>
 
@@ -166,7 +167,7 @@ void Interpreter::Visit(BreakStmt& break_stmt) {
 void Interpreter::Visit(FunctionStmt& function_stmt) {
   std::string function_name = function_stmt.name_.lexeme();
   LoxObject function = LoxObject(std::make_shared<FunctionCallable>(
-      std::move(function_stmt), environment_));
+      std::move(function_stmt), environment_, false));
   environment_->Define(function_name, function);
 }
 
@@ -178,17 +179,35 @@ void Interpreter::Visit(ReturnStmt& return_stmt) {
   throw ReturnException(value);
 }
 
+void Interpreter::Visit(ClassStmt& class_stmt) {
+  environment_->Define(class_stmt.name_.lexeme(), nullptr);
+
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods;
+  for (auto& method : class_stmt.methods_) {
+    std::string method_name = method.name_.lexeme();
+    methods[method_name] = std::make_shared<FunctionCallable>(
+        std::move(method), environment_, method_name == "init");
+  }
+
+  // 直接创建 shared_ptr，避免不必要的拷贝
+  std::shared_ptr<LoxClass> kClass =
+      std::make_shared<LoxClass>(class_stmt.name_.lexeme(), std::move(methods));
+  environment_->Assign(class_stmt.name_, LoxObject(kClass));
+}
+
 LoxObject Interpreter::Visit(CallExpr& call) {
   LoxObject callee = Evaluate(call.callee_);
   std::vector<LoxObject> arguments;
   for (auto& argument : call.arguments_) {
     arguments.push_back(Evaluate(argument));
   }
-  if (!callee.is<LoxCallable>()) {
+  if (!callee.is<LoxCallable>() && !callee.is<LoxClass>()) {
     throw RuntimeError(call.paren_, "Can only call functions and classes.");
   }
 
-  LoxCallable& callable = *callee.get<std::shared_ptr<LoxCallable>>();
+  LoxCallable& callable = callee.is<LoxCallable>()
+                              ? *callee.get<std::shared_ptr<LoxCallable>>()
+                              : *callee.get<std::shared_ptr<LoxClass>>();
   if (callable.arity() != arguments.size()) {
     throw RuntimeError(call.paren_, "Expected " +
                                         std::to_string(callable.arity()) +
@@ -196,6 +215,29 @@ LoxObject Interpreter::Visit(CallExpr& call) {
                                         std::to_string(arguments.size()));
   }
   return callable(*this, std::move(arguments));
+}
+
+LoxObject Interpreter::Visit(GetExpr& expr) {
+  LoxObject object = Evaluate(expr.object_);
+  if (!object.is<LoxInstance>()) {
+    throw RuntimeError(expr.name_, "Only instances have properties.");
+  }
+  return object.get<std::shared_ptr<LoxInstance>>()->Get(expr.name_);
+}
+
+LoxObject Interpreter::Visit(SetExpr& expr) {
+  LoxObject object = Evaluate(expr.object_);
+  if (!object.is<LoxInstance>()) {
+    throw RuntimeError(expr.name_, "Only instances have fields.");
+  }
+
+  LoxObject value = Evaluate(expr.value_);
+  object.get<std::shared_ptr<LoxInstance>>()->Set(expr.name_, value);
+  return value;
+}
+
+LoxObject Interpreter::Visit(ThisExpr& this_expr) {
+  return LookUpVariable(this_expr.keyword_, &this_expr);
 }
 
 LoxObject Interpreter::Evaluate(ExprPtr& expr) { return expr->Accept(*this); }

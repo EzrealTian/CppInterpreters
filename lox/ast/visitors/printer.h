@@ -38,13 +38,40 @@ class Printer : public ExprVisitor {
     return nullptr;
   }
 
-  LoxObject Visit(VariableExpr& variable) override { return nullptr; }
+  LoxObject Visit(VariableExpr& variable) override {
+    (void)variable;
+    return nullptr;
+  }
 
-  LoxObject Visit(AssignExpr& assign) override { return nullptr; }
+  LoxObject Visit(AssignExpr& assign) override {
+    (void)assign;
+    return nullptr;
+  }
 
-  LoxObject Visit(LogicalExpr& logical) override { return nullptr; }
+  LoxObject Visit(LogicalExpr& logical) override {
+    (void)logical;
+    return nullptr;
+  }
 
-  LoxObject Visit(CallExpr& call) override { return nullptr; }
+  LoxObject Visit(CallExpr& call) override {
+    (void)call;
+    return nullptr;
+  }
+
+  LoxObject Visit(GetExpr& get) override {
+    (void)get;
+    return nullptr;
+  }
+
+  LoxObject Visit(SetExpr& set) override {
+    (void)set;
+    return nullptr;
+  }
+
+  LoxObject Visit(ThisExpr& this_expr) override {
+    (void)this_expr;
+    return nullptr;
+  }
 
  private:
   void Parenthesize(const std::string& name,

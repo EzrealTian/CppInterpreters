@@ -2,6 +2,7 @@
 #define LOX_AST_EXPR_H_
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "lox/ast/visitor.h"
@@ -120,6 +121,46 @@ class CallExpr : public Expr {
   ExprPtr callee_;
   Token paren_;
   std::vector<ExprPtr> arguments_;
+};
+
+class GetExpr : public Expr {
+ public:
+  GetExpr(ExprPtr object, Token name)
+      : object_(std::move(object)), name_(std::move(name)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr object_;
+  Token name_;
+};
+
+class SetExpr : public Expr {
+ public:
+  SetExpr(ExprPtr object, Token name, ExprPtr value)
+      : object_(std::move(object)),
+        name_(std::move(name)),
+        value_(std::move(value)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr object_;
+  Token name_;
+  ExprPtr value_;
+};
+
+class ThisExpr : public Expr {
+ public:
+  ThisExpr(Token keyword) : keyword_(std::move(keyword)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token keyword_;
 };
 }  // namespace lox
 

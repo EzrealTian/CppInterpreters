@@ -1,4 +1,5 @@
 #include "lox/core/resolver.h"
+#include "lox/ast/expr.h"
 #include "lox/ast/stmt.h"
 #include "lox/core/lox.h"
 #include "lox/util/lox_object.h"
@@ -28,6 +29,27 @@ LoxObject Resolver::Visit(CallExpr& call_expr) {
   for (auto& argument : call_expr.arguments_) {
     Resolve(argument);
   }
+  return nullptr;
+}
+
+LoxObject Resolver::Visit(GetExpr& get_expr) {
+  Resolve(get_expr.object_);
+  return nullptr;
+}
+
+LoxObject Resolver::Visit(SetExpr& set_expr) {
+  Resolve(set_expr.value_);
+  Resolve(set_expr.object_);
+  return nullptr;
+}
+
+LoxObject Resolver::Visit(ThisExpr& this_expr) {
+  if (current_class_ == ClassType::NONE) {
+    Lox::Instance().Error(this_expr.keyword_,
+                          "Cannot use 'this' outside of a class.");
+    return nullptr;
+  }
+  ResolveLocal(this_expr, this_expr.keyword_);
   return nullptr;
 }
 
@@ -96,6 +118,10 @@ void Resolver::Visit(ReturnStmt& return_stmt) {
                           "Cannot return from top-level code.");
   }
   if (return_stmt.value_ != nullptr) {
+    if (current_function_ == FunctionType::INITIALIZER) {
+      Lox::Instance().Error(return_stmt.keyword_,
+                            "Cannot return a value from an initializer.");
+    }
     Resolve(return_stmt.value_);
   }
 }
@@ -107,6 +133,28 @@ void Resolver::Visit(WhileStmt& while_stmt) {
 
 void Resolver::Visit(BreakStmt& break_stmt) {
   (void)break_stmt;  // Break 语句不需要解析
+}
+
+void Resolver::Visit(ClassStmt& class_stmt) {
+  ClassType enclosing_class = current_class_;
+  current_class_ = ClassType::CLASS;
+
+  Declare(class_stmt.name_);
+  Define(class_stmt.name_);
+
+  BeginScope();
+  scopes_.back()["this"] = true;
+
+  for (auto& method : class_stmt.methods_) {
+    FunctionType type = FunctionType::METHOD;
+    if (method.name_.lexeme() == "init") {
+      type = FunctionType::INITIALIZER;
+    }
+    ResolveFunction(method, type);
+  }
+
+  EndScope();
+  current_class_ = enclosing_class;
 }
 
 void Resolver::Resolve(const std::vector<StmtPtr>& statements) {
@@ -158,6 +206,7 @@ void Resolver::Declare(const Token& name) {
 }
 
 void Resolver::Define(const Token& name) {
+  if (scopes_.empty()) return;
   scopes_.back()[name.lexeme()] = true;
 }
 }  // namespace lox

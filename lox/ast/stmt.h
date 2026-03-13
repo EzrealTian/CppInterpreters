@@ -113,6 +113,21 @@ class ReturnStmt : public Stmt {
   ExprPtr value_;
 };
 
+class ClassStmt : public Stmt {
+ public:
+  ClassStmt(Token name, VariableExpr superclass,
+            std::vector<FunctionStmt> methods)
+      : name_(std::move(name)),
+        superclass_(std::move(superclass)),
+        methods_(std::move(methods)) {}
+
+  void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
+
+  Token name_;
+  VariableExpr superclass_;
+  std::vector<FunctionStmt> methods_;
+};
+
 }  // namespace lox
 
 #endif  // LOX_AST_STMT_H_

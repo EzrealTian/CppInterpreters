@@ -2,6 +2,7 @@
 #include "lox/ast/expr.h"
 #include "lox/ast/stmt.h"
 #include "lox/core/lox.h"
+#include "lox/core/token.h"
 #include "lox/util/token_type.h"
 
 namespace lox {
@@ -159,6 +160,10 @@ ExprPtr Parser::ParseCall() {
   while (true) {
     if (Match({TokenType::LEFT_PAREN})) {
       expr = FinishCall(std::move(expr));
+    } else if (Match({TokenType::DOT})) {
+      Token name =
+          Consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+      expr = std::make_unique<GetExpr>(std::move(expr), name);
     } else {
       break;
     }
@@ -178,6 +183,11 @@ ExprPtr Parser::ParsePrimary() {
 
   if (Match({TokenType::NUMBER, TokenType::STRING}))
     return std::make_unique<LiteralExpr>(Previous().literal());
+
+  if (Match({TokenType::THIS})) {
+    Token keyword = Previous();
+    return std::make_unique<ThisExpr>(keyword);
+  }
 
   if (Match({TokenType::IDENTIFIER})) {
     Token name = Previous();
@@ -203,6 +213,11 @@ ExprPtr Parser::ParseAssignment() {
     VariableExpr* variable = dynamic_cast<VariableExpr*>(expr.get());
     if (variable != nullptr) {
       return std::make_unique<AssignExpr>(variable->name_, std::move(value));
+    }
+    GetExpr* get = dynamic_cast<GetExpr*>(expr.get());
+    if (get != nullptr) {
+      return std::make_unique<SetExpr>(std::move(get->object_), get->name_,
+                                       std::move(value));
     }
 
     throw Error(equals_token, "Invalid assignment target.");
@@ -283,6 +298,7 @@ StmtPtr Parser::BreakStatement() {
 
 StmtPtr Parser::Declaration() {
   try {
+    if (Match({TokenType::CLASS})) return ClassDeclaration();
     if (Match({TokenType::FUN})) return FuncDeclaration("function");
     if (Match({TokenType::VAR})) return VarDeclaration();
     return Statement();
@@ -320,6 +336,24 @@ StmtPtr Parser::FuncDeclaration(std::string kind) {
   std::vector<StmtPtr> body = Block();
   return std::make_unique<FunctionStmt>(std::move(name), std::move(parameters),
                                         std::move(body));
+}
+
+StmtPtr Parser::ClassDeclaration() {
+  Token name = Consume(TokenType::IDENTIFIER, "Expect class name.");
+  Consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+  std::vector<FunctionStmt> methods;
+  while (!Check(TokenType::RIGHT_BRACE) && !IsAtEnd()) {
+    StmtPtr method = FuncDeclaration("method");
+    FunctionStmt* function_stmt = dynamic_cast<FunctionStmt*>(method.get());
+    if (function_stmt != nullptr) {
+      methods.push_back(std::move(*function_stmt));
+    }
+  }
+  Consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+  VariableExpr empty_superclass(Token(TokenType::IDENTIFIER, "", nullptr, 0));
+  return std::make_unique<ClassStmt>(
+      std::move(name), std::move(empty_superclass), std::move(methods));
 }
 
 StmtPtr Parser::IfStatement() {

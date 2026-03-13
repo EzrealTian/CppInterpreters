@@ -4,8 +4,7 @@
 #include "lox/ast/expr.h"
 #include "lox/ast/stmt.h"
 #include "lox/ast/visitors/interpreter.h"
-// #include "lox/core/environment.h"
-// #include "lox/core/token.h"
+#include "lox/util/lox_object.h"
 
 #include <vector>
 #include <unordered_map>
@@ -27,6 +26,7 @@ class Resolver : public StmtVisitor, public ExprVisitor {
   void Visit(BreakStmt& break_stmt) override;
   void Visit(FunctionStmt& function_stmt) override;
   void Visit(ReturnStmt& return_stmt) override;
+  void Visit(ClassStmt& class_stmt) override;
 
   LoxObject Visit(BinaryExpr& binary) override;
   LoxObject Visit(UnaryExpr& unary) override;
@@ -36,6 +36,9 @@ class Resolver : public StmtVisitor, public ExprVisitor {
   LoxObject Visit(AssignExpr& assign) override;
   LoxObject Visit(LogicalExpr& logical) override;
   LoxObject Visit(CallExpr& call) override;
+  LoxObject Visit(GetExpr& get) override;
+  LoxObject Visit(SetExpr& set) override;
+  LoxObject Visit(ThisExpr& this_expr) override;
 
  private:
   enum class FunctionType {
@@ -43,6 +46,12 @@ class Resolver : public StmtVisitor, public ExprVisitor {
     FUNCTION,
     INITIALIZER,
     METHOD,
+  };
+
+  enum class ClassType {
+    NONE,
+    CLASS,
+    SUBCLASS,
   };
 
   void Resolve(const StmtPtr& statement);
@@ -60,6 +69,7 @@ class Resolver : public StmtVisitor, public ExprVisitor {
   Interpreter& interpreter_;
   std::vector<std::unordered_map<std::string, bool>> scopes_;
   FunctionType current_function_ = FunctionType::NONE;
+  ClassType current_class_ = ClassType::NONE;
 };
 
 }  // namespace lox
