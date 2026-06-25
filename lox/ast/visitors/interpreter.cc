@@ -183,15 +183,23 @@ void Interpreter::Visit(ClassStmt& class_stmt) {
   environment_->Define(class_stmt.name_.lexeme(), nullptr);
 
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods;
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
+      static_methods;
   for (auto& method : class_stmt.methods_) {
     std::string method_name = method.name_.lexeme();
-    methods[method_name] = std::make_shared<FunctionCallable>(
+    bool is_static = method.is_static_;
+    auto func = std::make_shared<FunctionCallable>(
         std::move(method), environment_, method_name == "init");
+    if (is_static) {
+      static_methods[method_name] = func;
+    } else {
+      methods[method_name] = func;
+    }
   }
 
   // 直接创建 shared_ptr，避免不必要的拷贝
-  std::shared_ptr<LoxClass> kClass =
-      std::make_shared<LoxClass>(class_stmt.name_.lexeme(), std::move(methods));
+  std::shared_ptr<LoxClass> kClass = std::make_shared<LoxClass>(
+      class_stmt.name_.lexeme(), std::move(methods), std::move(static_methods));
   environment_->Assign(class_stmt.name_, LoxObject(kClass));
 }
 

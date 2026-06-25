@@ -15,15 +15,15 @@ class LoxClass;
 class LoxInstance : public std::enable_shared_from_this<LoxInstance> {
  public:
   LoxInstance(std::shared_ptr<LoxClass> klass);
-  ~LoxInstance() = default;
+  virtual ~LoxInstance() = default;
 
-  std::string ToString() const;
+  virtual std::string ToString();
 
-  LoxObject Get(Token name);
+  virtual LoxObject Get(Token name);
 
-  void Set(Token name, LoxObject value);
+  virtual void Set(Token name, LoxObject value);
 
- private:
+ protected:
   std::shared_ptr<LoxClass> klass_;
   std::unordered_map<std::string, LoxObject> fields_;
 };

@@ -106,6 +106,18 @@ class LoxObject {
       return *std::get<std::shared_ptr<LoxClass>>(value_);
     } else if constexpr (std::is_same_v<T, LoxInstance>) {
       return *std::get<std::shared_ptr<LoxInstance>>(value_);
+    } else if constexpr (std::is_same_v<T, std::shared_ptr<LoxCallable>>) {
+      if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value_)) {
+        return std::get<std::shared_ptr<LoxCallable>>(value_);
+      }
+      return std::static_pointer_cast<LoxCallable>(
+          std::get<std::shared_ptr<LoxClass>>(value_));
+    } else if constexpr (std::is_same_v<T, std::shared_ptr<LoxInstance>>) {
+      if (std::holds_alternative<std::shared_ptr<LoxInstance>>(value_)) {
+        return std::get<std::shared_ptr<LoxInstance>>(value_);
+      }
+      return std::static_pointer_cast<LoxInstance>(
+          std::get<std::shared_ptr<LoxClass>>(value_));
     } else {
       return std::get<T>(value_);
     }
@@ -115,11 +127,13 @@ class LoxObject {
   template <typename T>
   bool is() const {
     if constexpr (std::is_same_v<T, LoxCallable>) {
-      return std::holds_alternative<std::shared_ptr<LoxCallable>>(value_);
+      return std::holds_alternative<std::shared_ptr<LoxCallable>>(value_) ||
+             std::holds_alternative<std::shared_ptr<LoxClass>>(value_);
     } else if constexpr (std::is_same_v<T, LoxClass>) {
       return std::holds_alternative<std::shared_ptr<LoxClass>>(value_);
     } else if constexpr (std::is_same_v<T, LoxInstance>) {
-      return std::holds_alternative<std::shared_ptr<LoxInstance>>(value_);
+      return std::holds_alternative<std::shared_ptr<LoxInstance>>(value_) ||
+             std::holds_alternative<std::shared_ptr<LoxClass>>(value_);
     } else {
       return std::holds_alternative<T>(value_);
     }

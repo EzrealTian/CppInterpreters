@@ -344,9 +344,14 @@ StmtPtr Parser::ClassDeclaration() {
 
   std::vector<FunctionStmt> methods;
   while (!Check(TokenType::RIGHT_BRACE) && !IsAtEnd()) {
+    bool is_static = false;
+    if (Match({TokenType::CLASS})) {
+      is_static = true;
+    }
     StmtPtr method = FuncDeclaration("method");
     FunctionStmt* function_stmt = dynamic_cast<FunctionStmt*>(method.get());
     if (function_stmt != nullptr) {
+      function_stmt->is_static_ = is_static;
       methods.push_back(std::move(*function_stmt));
     }
   }

@@ -6,7 +6,7 @@ namespace lox {
 LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass)
     : klass_(std::move(klass)) {}
 
-std::string LoxInstance::ToString() const {
+std::string LoxInstance::ToString() {
   return klass_->name() + " instance";
 }
 
