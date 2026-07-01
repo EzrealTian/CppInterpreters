@@ -66,6 +66,7 @@ class Parser {
   StmtPtr Declaration();
   StmtPtr VarDeclaration();
   StmtPtr FuncDeclaration(std::string kind);
+  StmtPtr MethodDeclaration(bool is_static);
   StmtPtr ClassDeclaration();
   StmtPtr IfStatement();
   StmtPtr WhileStatement();

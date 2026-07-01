@@ -90,11 +90,13 @@ class BreakStmt : public Stmt {
 class FunctionStmt : public Stmt {
  public:
   FunctionStmt(Token name, std::vector<Token> parameters,
-               std::vector<StmtPtr> body, bool is_static = false)
+               std::vector<StmtPtr> body, bool is_static = false,
+               bool is_getter = false)
       : name_(std::move(name)),
         parameters_(std::move(parameters)),
         body_(std::move(body)),
-        is_static_(is_static) {}
+        is_static_(is_static),
+        is_getter_(is_getter) {}
 
   void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
 
@@ -102,6 +104,7 @@ class FunctionStmt : public Stmt {
   std::vector<Token> parameters_;
   std::vector<StmtPtr> body_;
   bool is_static_ = false;
+  bool is_getter_ = false;
 };
 
 class ReturnStmt : public Stmt {

@@ -11,6 +11,7 @@
 namespace lox {
 
 class LoxClass;
+class Interpreter;
 
 class LoxInstance : public std::enable_shared_from_this<LoxInstance> {
  public:
@@ -19,7 +20,7 @@ class LoxInstance : public std::enable_shared_from_this<LoxInstance> {
 
   virtual std::string ToString();
 
-  virtual LoxObject Get(Token name);
+  virtual LoxObject Get(Token name, Interpreter& interpreter);
 
   virtual void Set(Token name, LoxObject value);
 

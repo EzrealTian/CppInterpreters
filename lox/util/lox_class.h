@@ -19,11 +19,17 @@ class LoxClass : public LoxCallable, public LoxInstance {
            std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
                methods,
            std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
-               static_methods = {})
+               static_methods = {},
+           std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
+               getters = {},
+           std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
+               static_getters = {})
       : LoxInstance(nullptr),
         name_(std::move(name)),
         methods_(std::move(methods)),
-        static_methods_(std::move(static_methods)) {}
+        static_methods_(std::move(static_methods)),
+        getters_(std::move(getters)),
+        static_getters_(std::move(static_getters)) {}
 
   ~LoxClass() override = default;
 
@@ -67,20 +73,41 @@ class LoxClass : public LoxCallable, public LoxInstance {
     return nullptr;
   }
 
-  // Override Get: for a class object, look up static methods instead of
-  // instance methods. Fields (set on the class) take priority over static
-  // methods.
-  LoxObject Get(Token name) override {
+  std::shared_ptr<FunctionCallable> FindGetter(const std::string& name) {
+    if (getters_.find(name) != getters_.end()) {
+      return getters_.at(name);
+    }
+    return nullptr;
+  }
+
+  std::shared_ptr<FunctionCallable> FindStaticGetter(const std::string& name) {
+    if (static_getters_.find(name) != static_getters_.end()) {
+      return static_getters_.at(name);
+    }
+    return nullptr;
+  }
+
+  // Override Get: for a class object, look up static getters and static
+  // methods. Fields (set on the class) take priority.
+  LoxObject Get(Token name, Interpreter& interpreter) override {
     // 1. Check fields (allows setting arbitrary properties on the class)
     if (fields_.find(name.lexeme()) != fields_.end()) {
       return fields_.at(name.lexeme());
     }
 
-    // 2. Check static methods
+    // 2. Check static getters — auto-invoke, return result
+    std::shared_ptr<FunctionCallable> static_getter =
+        FindStaticGetter(name.lexeme());
+    if (static_getter != nullptr) {
+      std::shared_ptr<FunctionCallable> bound_getter =
+          static_getter->Bind(LoxObject(SelfAsClass()));
+      return (*bound_getter)(interpreter, {});
+    }
+
+    // 3. Check static methods — bind and return callable
     std::shared_ptr<FunctionCallable> static_method =
         FindStaticMethod(name.lexeme());
     if (static_method != nullptr) {
-      // Bind 'this' to the class itself
       std::shared_ptr<FunctionCallable> bound_method =
           static_method->Bind(LoxObject(SelfAsClass()));
       return LoxObject(bound_method);
@@ -101,6 +128,9 @@ class LoxClass : public LoxCallable, public LoxInstance {
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods_;
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
       static_methods_;
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> getters_;
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
+      static_getters_;
 };
 }  // namespace lox
 

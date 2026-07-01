@@ -338,6 +338,38 @@ StmtPtr Parser::FuncDeclaration(std::string kind) {
                                         std::move(body));
 }
 
+StmtPtr Parser::MethodDeclaration(bool is_static) {
+  Token name = Consume(TokenType::IDENTIFIER, "Expect method name.");
+  bool is_getter = false;
+  std::vector<Token> parameters;
+  std::vector<StmtPtr> body;
+
+  if (Match({TokenType::LEFT_BRACE})) {
+    // Getter syntax: name { ... }
+    is_getter = true;
+    body = Block();
+    // LEFT_BRACE was already consumed by Match; Block reads until '}'
+  } else {
+    // Regular method syntax: name ( params ) { ... }
+    Consume(TokenType::LEFT_PAREN, "Expect '(' after method name.");
+    if (!Check(TokenType::RIGHT_PAREN)) {
+      do {
+        if (parameters.size() >= 255) {
+          Error(Peek(), "Can't have more than 255 parameters.");
+        }
+        parameters.push_back(
+            Consume(TokenType::IDENTIFIER, "Expect parameter name."));
+      } while (Match({TokenType::COMMA}));
+    }
+    Consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+    Consume(TokenType::LEFT_BRACE, "Expect '{' before method body.");
+    body = Block();
+  }
+
+  return std::make_unique<FunctionStmt>(std::move(name), std::move(parameters),
+                                        std::move(body), is_static, is_getter);
+}
+
 StmtPtr Parser::ClassDeclaration() {
   Token name = Consume(TokenType::IDENTIFIER, "Expect class name.");
   Consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
@@ -348,10 +380,9 @@ StmtPtr Parser::ClassDeclaration() {
     if (Match({TokenType::CLASS})) {
       is_static = true;
     }
-    StmtPtr method = FuncDeclaration("method");
+    StmtPtr method = MethodDeclaration(is_static);
     FunctionStmt* function_stmt = dynamic_cast<FunctionStmt*>(method.get());
     if (function_stmt != nullptr) {
-      function_stmt->is_static_ = is_static;
       methods.push_back(std::move(*function_stmt));
     }
   }

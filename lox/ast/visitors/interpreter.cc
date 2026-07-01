@@ -185,12 +185,23 @@ void Interpreter::Visit(ClassStmt& class_stmt) {
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods;
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
       static_methods;
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> getters;
+  std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
+      static_getters;
   for (auto& method : class_stmt.methods_) {
     std::string method_name = method.name_.lexeme();
     bool is_static = method.is_static_;
+    bool is_getter = method.is_getter_;
+    // Getters are not initializers and have no parameters
     auto func = std::make_shared<FunctionCallable>(
-        std::move(method), environment_, method_name == "init");
-    if (is_static) {
+        std::move(method), environment_, !is_getter && method_name == "init");
+    if (is_getter) {
+      if (is_static) {
+        static_getters[method_name] = func;
+      } else {
+        getters[method_name] = func;
+      }
+    } else if (is_static) {
       static_methods[method_name] = func;
     } else {
       methods[method_name] = func;
@@ -198,8 +209,10 @@ void Interpreter::Visit(ClassStmt& class_stmt) {
   }
 
   // 直接创建 shared_ptr，避免不必要的拷贝
-  std::shared_ptr<LoxClass> kClass = std::make_shared<LoxClass>(
-      class_stmt.name_.lexeme(), std::move(methods), std::move(static_methods));
+  std::shared_ptr<LoxClass> kClass =
+      std::make_shared<LoxClass>(class_stmt.name_.lexeme(), std::move(methods),
+                                 std::move(static_methods), std::move(getters),
+                                 std::move(static_getters));
   environment_->Assign(class_stmt.name_, LoxObject(kClass));
 }
 
@@ -230,7 +243,7 @@ LoxObject Interpreter::Visit(GetExpr& expr) {
   if (!object.is<LoxInstance>()) {
     throw RuntimeError(expr.name_, "Only instances have properties.");
   }
-  return object.get<std::shared_ptr<LoxInstance>>()->Get(expr.name_);
+  return object.get<std::shared_ptr<LoxInstance>>()->Get(expr.name_, *this);
 }
 
 LoxObject Interpreter::Visit(SetExpr& expr) {
