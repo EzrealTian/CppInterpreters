@@ -184,6 +184,14 @@ ExprPtr Parser::ParsePrimary() {
   if (Match({TokenType::NUMBER, TokenType::STRING}))
     return std::make_unique<LiteralExpr>(Previous().literal());
 
+  if (Match({TokenType::SUPER})) {
+    Token keyword = Previous();
+    Consume(TokenType::DOT, "Expect '.' after 'super'.");
+    Token method =
+        Consume(TokenType::IDENTIFIER, "Expect superclass method name.");
+    return std::make_unique<SuperExpr>(keyword, method);
+  }
+
   if (Match({TokenType::THIS})) {
     Token keyword = Previous();
     return std::make_unique<ThisExpr>(keyword);
@@ -372,6 +380,13 @@ StmtPtr Parser::MethodDeclaration(bool is_static) {
 
 StmtPtr Parser::ClassDeclaration() {
   Token name = Consume(TokenType::IDENTIFIER, "Expect class name.");
+
+  ExprPtr super_class = nullptr;
+  if (Match({TokenType::LESS})) {
+    Consume(TokenType::IDENTIFIER, "Expect superclass name.");
+    super_class = std::make_unique<VariableExpr>(Previous());
+  }
+
   Consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
 
   std::vector<FunctionStmt> methods;
@@ -387,9 +402,8 @@ StmtPtr Parser::ClassDeclaration() {
     }
   }
   Consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
-  VariableExpr empty_superclass(Token(TokenType::IDENTIFIER, "", nullptr, 0));
-  return std::make_unique<ClassStmt>(
-      std::move(name), std::move(empty_superclass), std::move(methods));
+  return std::make_unique<ClassStmt>(std::move(name), std::move(super_class),
+                                     std::move(methods));
 }
 
 StmtPtr Parser::IfStatement() {

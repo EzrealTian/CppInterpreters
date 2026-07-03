@@ -39,6 +39,7 @@ class Resolver : public StmtVisitor, public ExprVisitor {
   LoxObject Visit(GetExpr& get) override;
   LoxObject Visit(SetExpr& set) override;
   LoxObject Visit(ThisExpr& this_expr) override;
+  LoxObject Visit(SuperExpr& super_expr) override;
 
  private:
   enum class FunctionType {

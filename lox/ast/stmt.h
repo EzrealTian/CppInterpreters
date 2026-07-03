@@ -120,8 +120,7 @@ class ReturnStmt : public Stmt {
 
 class ClassStmt : public Stmt {
  public:
-  ClassStmt(Token name, VariableExpr superclass,
-            std::vector<FunctionStmt> methods)
+  ClassStmt(Token name, ExprPtr superclass, std::vector<FunctionStmt> methods)
       : name_(std::move(name)),
         superclass_(std::move(superclass)),
         methods_(std::move(methods)) {}
@@ -129,7 +128,7 @@ class ClassStmt : public Stmt {
   void Accept(StmtVisitor& visitor) override { visitor.Visit(*this); }
 
   Token name_;
-  VariableExpr superclass_;
+  ExprPtr superclass_;
   std::vector<FunctionStmt> methods_;
 };
 

@@ -73,6 +73,11 @@ class Printer : public ExprVisitor {
     return nullptr;
   }
 
+  LoxObject Visit(SuperExpr& super_expr) override {
+    (void)super_expr;
+    return nullptr;
+  }
+
  private:
   void Parenthesize(const std::string& name,
                     std::initializer_list<Expr*> exprs) {

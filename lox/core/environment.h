@@ -76,6 +76,8 @@ class Environment {
     return environment;
   }
 
+  std::shared_ptr<Environment> Enclosing() const { return enclosing_; }
+
  private:
   std::unordered_map<std::string, LoxObject> values_;
   std::shared_ptr<Environment> enclosing_;

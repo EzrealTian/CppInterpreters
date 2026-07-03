@@ -15,6 +15,7 @@ class CallExpr;
 class GetExpr;
 class SetExpr;
 class ThisExpr;
+class SuperExpr;
 class ExprVisitor {
  public:
   virtual ~ExprVisitor() = default;
@@ -30,6 +31,7 @@ class ExprVisitor {
   virtual LoxObject Visit(GetExpr& get) = 0;
   virtual LoxObject Visit(SetExpr& set) = 0;
   virtual LoxObject Visit(ThisExpr& this_expr) = 0;
+  virtual LoxObject Visit(SuperExpr& super_expr) = 0;
 };
 
 class BlockStmt;

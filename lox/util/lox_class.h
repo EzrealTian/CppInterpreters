@@ -12,10 +12,9 @@ namespace lox {
 
 class LoxClass : public LoxCallable, public LoxInstance {
  public:
-  LoxClass(std::string name)
-      : LoxInstance(nullptr), name_(std::move(name)) {}
+  LoxClass(std::string name) : LoxInstance(nullptr), name_(std::move(name)) {}
 
-  LoxClass(std::string name,
+  LoxClass(std::string name, std::shared_ptr<LoxClass> super_class,
            std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
                methods,
            std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
@@ -26,6 +25,7 @@ class LoxClass : public LoxCallable, public LoxInstance {
                static_getters = {})
       : LoxInstance(nullptr),
         name_(std::move(name)),
+        super_class_(std::move(super_class)),
         methods_(std::move(methods)),
         static_methods_(std::move(static_methods)),
         getters_(std::move(getters)),
@@ -63,12 +63,18 @@ class LoxClass : public LoxCallable, public LoxInstance {
     if (methods_.find(name) != methods_.end()) {
       return methods_.at(name);
     }
+    if (super_class_ != nullptr) {
+      return super_class_->FindMethod(name);
+    }
     return nullptr;
   }
 
   std::shared_ptr<FunctionCallable> FindStaticMethod(const std::string& name) {
     if (static_methods_.find(name) != static_methods_.end()) {
       return static_methods_.at(name);
+    }
+    if (super_class_ != nullptr) {
+      return super_class_->FindStaticMethod(name);
     }
     return nullptr;
   }
@@ -77,12 +83,18 @@ class LoxClass : public LoxCallable, public LoxInstance {
     if (getters_.find(name) != getters_.end()) {
       return getters_.at(name);
     }
+    if (super_class_ != nullptr) {
+      return super_class_->FindGetter(name);
+    }
     return nullptr;
   }
 
   std::shared_ptr<FunctionCallable> FindStaticGetter(const std::string& name) {
     if (static_getters_.find(name) != static_getters_.end()) {
       return static_getters_.at(name);
+    }
+    if (super_class_ != nullptr) {
+      return super_class_->FindStaticGetter(name);
     }
     return nullptr;
   }
@@ -125,6 +137,7 @@ class LoxClass : public LoxCallable, public LoxInstance {
   }
 
   std::string name_;
+  std::shared_ptr<LoxClass> super_class_;
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods_;
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
       static_methods_;

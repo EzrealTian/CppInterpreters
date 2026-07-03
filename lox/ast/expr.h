@@ -162,6 +162,17 @@ class ThisExpr : public Expr {
 
   Token keyword_;
 };
+
+class SuperExpr : public Expr {
+ public:
+  SuperExpr(Token keyword, Token method) : keyword_(keyword), method_(method) {}
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token keyword_;
+  Token method_;
+};
 }  // namespace lox
 
 #endif  // LOX_AST_EXPR_H_

@@ -80,6 +80,18 @@ LoxObject Resolver::Visit(UnaryExpr& unary_expr) {
   return nullptr;
 }
 
+LoxObject Resolver::Visit(SuperExpr& super_expr) {
+  if (current_class_ == ClassType::NONE) {
+    Lox::Instance().Error(super_expr.keyword_,
+                          "Can't use 'super' outside of a class.");
+  } else if (current_class_ != ClassType::SUBCLASS) {
+    Lox::Instance().Error(super_expr.keyword_,
+                          "Can't use 'super' in a class with no superclass.");
+  }
+  ResolveLocal(super_expr, super_expr.keyword_);
+  return nullptr;
+}
+
 void Resolver::Visit(BlockStmt& block_stmt) {
   BeginScope();
   Resolve(block_stmt.statements_);
@@ -142,6 +154,21 @@ void Resolver::Visit(ClassStmt& class_stmt) {
   Declare(class_stmt.name_);
   Define(class_stmt.name_);
 
+  if (class_stmt.superclass_ != nullptr) {
+    current_class_ = ClassType::SUBCLASS;
+    auto& superclass_var = static_cast<VariableExpr&>(*class_stmt.superclass_);
+    if (class_stmt.name_.lexeme() == superclass_var.name_.lexeme()) {
+      Lox::Instance().Error(superclass_var.name_,
+                            "A class can't inherit from itself.");
+    }
+    Resolve(class_stmt.superclass_);
+  }
+
+  if (class_stmt.superclass_ != nullptr) {
+    BeginScope();
+    scopes_.back()["super"] = true;
+  }
+
   BeginScope();
   scopes_.back()["this"] = true;
 
@@ -154,6 +181,11 @@ void Resolver::Visit(ClassStmt& class_stmt) {
   }
 
   EndScope();
+
+  if (class_stmt.superclass_ != nullptr) {
+    EndScope();
+  }
+
   current_class_ = enclosing_class;
 }
 

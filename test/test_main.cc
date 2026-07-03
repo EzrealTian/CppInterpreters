@@ -7,9 +7,7 @@ namespace test {
 void testScanner();
 void testTokenType();
 void testPrinter();
-// 未来可以添加更多测试
-// void testParser();
-// void testInterpreter();
+void testClass();
 }  // namespace test
 }  // namespace lox
 
@@ -20,6 +18,7 @@ void printUsage(const char* program) {
     std::cout << "  --scanner       测试Scanner（词法分析器）\n";
     std::cout << "  --token-type    测试TokenType转换\n";
     std::cout << "  --printer       测试表达式打印器\n";
+    std::cout << "  --class         测试类继承\n";
     // std::cout << "  --parser        测试Parser（语法分析器）\n";
     // std::cout << "  --interpreter   测试Interpreter（解释器）\n";
     std::cout << "  --help, -h      显示帮助信息\n";
@@ -40,6 +39,7 @@ int main(int argc, char* argv[]) {
     bool runScanner = false;
     bool runTokenType = false;
     bool runPrinter = false;
+    bool runClass = false;
 
     // 解析命令行参数
     for (int i = 1; i < argc; ++i) {
@@ -55,7 +55,10 @@ int main(int argc, char* argv[]) {
         } else if (arg == "--token-type") {
             runTokenType = true;
         } else if (arg == "--printer") {
-            runPrinter = true;
+        runPrinter = true;
+        runClass = true;
+        } else if (arg == "--class") {
+            runClass = true;
         } else {
             std::cout << "❌ 未知选项: " << arg << "\n\n";
             printUsage(argv[0]);
@@ -115,6 +118,20 @@ int main(int argc, char* argv[]) {
             passedCount++;
         } catch (const std::exception& e) {
             std::cout << "❌ Printer 测试失败: " << e.what() << "\n\n";
+        }
+    }
+
+    // 运行Class测试
+    if (runClass) {
+        testCount++;
+        std::cout << "▶️  运行 Class 测试...\n";
+        std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        try {
+            lox::test::testClass();
+            std::cout << "✅ Class 测试通过\n\n";
+            passedCount++;
+        } catch (const std::exception& e) {
+            std::cout << "❌ Class 测试失败: " << e.what() << "\n\n";
         }
     }
 

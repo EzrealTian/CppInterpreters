@@ -22,6 +22,14 @@ class Lox {
   void Error(Token token, const std::string& message);
   void RuntimeError(const RuntimeError& error);
 
+  // --- 以下三个方法仅用于测试 ---
+  bool HadError() const { return has_error_; }
+  bool HadRuntimeError() const { return has_runtime_error_; }
+  void ResetErrors() {
+    has_error_ = false;
+    has_runtime_error_ = false;
+  }
+
  private:
   Lox() = default;
 

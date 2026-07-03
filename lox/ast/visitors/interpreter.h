@@ -46,6 +46,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
   LoxObject Visit(ThisExpr& this_expr) override;
 
+  LoxObject Visit(SuperExpr& super_expr) override;
+
   void Visit(BlockStmt& block_stmt) override;
 
   void Visit(ExprStmt& expr_stmt) override;

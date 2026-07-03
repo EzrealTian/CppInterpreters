@@ -180,7 +180,23 @@ void Interpreter::Visit(ReturnStmt& return_stmt) {
 }
 
 void Interpreter::Visit(ClassStmt& class_stmt) {
+  std::shared_ptr<LoxClass> super_class = nullptr;
+  if (class_stmt.superclass_ != nullptr) {
+    LoxObject super_class_obj = Evaluate(class_stmt.superclass_);
+    if (!super_class_obj.is<LoxClass>()) {
+      throw RuntimeError(
+          static_cast<VariableExpr&>(*class_stmt.superclass_).name_,
+          "Superclass must be a class.");
+    }
+    super_class = super_class_obj.get<std::shared_ptr<LoxClass>>();
+  }
+
   environment_->Define(class_stmt.name_.lexeme(), nullptr);
+
+  if (class_stmt.superclass_ != nullptr) {
+    environment_ = std::shared_ptr<Environment>(environment_);
+    environment_->Define("super", super_class);
+  }
 
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>> methods;
   std::unordered_map<std::string, std::shared_ptr<FunctionCallable>>
@@ -209,10 +225,14 @@ void Interpreter::Visit(ClassStmt& class_stmt) {
   }
 
   // 直接创建 shared_ptr，避免不必要的拷贝
-  std::shared_ptr<LoxClass> kClass =
-      std::make_shared<LoxClass>(class_stmt.name_.lexeme(), std::move(methods),
-                                 std::move(static_methods), std::move(getters),
-                                 std::move(static_getters));
+  std::shared_ptr<LoxClass> kClass = std::make_shared<LoxClass>(
+      class_stmt.name_.lexeme(), std::move(super_class), std::move(methods),
+      std::move(static_methods), std::move(getters), std::move(static_getters));
+
+  if (super_class != nullptr) {
+    environment_ = environment_->Enclosing();
+  }
+
   environment_->Assign(class_stmt.name_, LoxObject(kClass));
 }
 
@@ -259,6 +279,29 @@ LoxObject Interpreter::Visit(SetExpr& expr) {
 
 LoxObject Interpreter::Visit(ThisExpr& this_expr) {
   return LookUpVariable(this_expr.keyword_, &this_expr);
+}
+
+LoxObject Interpreter::Visit(SuperExpr& super_expr) {
+  int distance = locals_.at(&super_expr);
+  auto super_class =
+      environment_->GetAt("super", distance).get<std::shared_ptr<LoxClass>>();
+  auto object = environment_->GetAt("this", distance - 1)
+                    .get<std::shared_ptr<LoxInstance>>();
+  auto method = super_class->FindMethod(super_expr.method_.lexeme());
+
+  if (method != nullptr) {
+    return LoxObject(method->Bind(LoxObject(object)));
+  }
+
+  auto getter = super_class->FindGetter(super_expr.method_.lexeme());
+  if (getter != nullptr) {
+    auto bound_getter = getter->Bind(LoxObject(object));
+    return (*bound_getter)(*this, {});
+  }
+
+  throw RuntimeError(
+      super_expr.method_,
+      "Undefined property '" + super_expr.method_.lexeme() + "'.");
 }
 
 LoxObject Interpreter::Evaluate(ExprPtr& expr) { return expr->Accept(*this); }
