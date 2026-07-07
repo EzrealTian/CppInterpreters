@@ -29,8 +29,11 @@ message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "========================================")
 
 # ==================== 子项目 ====================
-# 添加 lox 主程序
-add_subdirectory(lox)
+# 添加 lox 解释器
+add_subdirectory(lox_interpreter)
+
+# 添加 lox 字节码解释器
+add_subdirectory(lox_bytecode)
 
 # 添加测试程序（可选）
 option(BUILD_TESTS "Build test programs" ON)
@@ -45,14 +48,16 @@ endif()
 message(STATUS "========================================")
 message(STATUS "Configuration complete!")
 message(STATUS "Targets:")
-message(STATUS "  - cpplox (Lox interpreter)")
+message(STATUS "  - lox_interpreter (Lox interpreter)")
+message(STATUS "  - lox_bytecode (Lox bytecode interpreter)")
 if(BUILD_TESTS)
     message(STATUS "  - loxtest (Test suite)")
 endif()
 message(STATUS "")
 message(STATUS "Build commands:")
 message(STATUS "  cmake --build .")
-message(STATUS "  cmake --build . --target cpplox")
+message(STATUS "  cmake --build . --target lox_interpreter")
+message(STATUS "  cmake --build . --target lox_bytecode")
 if(BUILD_TESTS)
     message(STATUS "  cmake --build . --target loxtest")
 endif()

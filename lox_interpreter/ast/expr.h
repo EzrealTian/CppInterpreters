@@ -1,0 +1,178 @@
+#ifndef LOX_AST_EXPR_H_
+#define LOX_AST_EXPR_H_
+
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "lox_interpreter/ast/visitor.h"
+#include "lox_interpreter/core/token.h"
+#include "lox_interpreter/util/lox_object.h"
+
+namespace lox {
+
+class Expr {
+ public:
+  virtual ~Expr() = default;
+  virtual LoxObject Accept(ExprVisitor& visitor) = 0;
+};
+
+using ExprPtr = std::unique_ptr<Expr>;
+
+class BinaryExpr : public Expr {
+ public:
+  BinaryExpr(ExprPtr left, Token op, ExprPtr right)
+      : left_(std::move(left)), op_(std::move(op)), right_(std::move(right)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr left_;
+  Token op_;
+  ExprPtr right_;
+};
+
+class UnaryExpr : public Expr {
+ public:
+  UnaryExpr(Token op, ExprPtr right)
+      : op_(std::move(op)), right_(std::move(right)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token op_;
+  ExprPtr right_;
+};
+
+class LiteralExpr : public Expr {
+ public:
+  explicit LiteralExpr(LoxObject value) : value_(std::move(value)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  LoxObject value_;
+};
+
+class GroupingExpr : public Expr {
+ public:
+  explicit GroupingExpr(ExprPtr expression)
+      : expression_(std::move(expression)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr expression_;
+};
+
+class VariableExpr : public Expr {
+ public:
+  VariableExpr(Token name) : name_(std::move(name)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token name_;
+};
+
+class AssignExpr : public Expr {
+ public:
+  AssignExpr(Token name, ExprPtr value)
+      : name_(std::move(name)), value_(std::move(value)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token name_;
+  ExprPtr value_;
+};
+
+class LogicalExpr : public Expr {
+ public:
+  LogicalExpr(ExprPtr left, Token op, ExprPtr right)
+      : left_(std::move(left)), op_(std::move(op)), right_(std::move(right)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr left_;
+  Token op_;
+  ExprPtr right_;
+};
+
+class CallExpr : public Expr {
+ public:
+  CallExpr(ExprPtr callee, Token paren, std::vector<ExprPtr> arguments)
+      : callee_(std::move(callee)),
+        paren_(std::move(paren)),
+        arguments_(std::move(arguments)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr callee_;
+  Token paren_;
+  std::vector<ExprPtr> arguments_;
+};
+
+class GetExpr : public Expr {
+ public:
+  GetExpr(ExprPtr object, Token name)
+      : object_(std::move(object)), name_(std::move(name)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr object_;
+  Token name_;
+};
+
+class SetExpr : public Expr {
+ public:
+  SetExpr(ExprPtr object, Token name, ExprPtr value)
+      : object_(std::move(object)),
+        name_(std::move(name)),
+        value_(std::move(value)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  ExprPtr object_;
+  Token name_;
+  ExprPtr value_;
+};
+
+class ThisExpr : public Expr {
+ public:
+  ThisExpr(Token keyword) : keyword_(std::move(keyword)) {}
+
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token keyword_;
+};
+
+class SuperExpr : public Expr {
+ public:
+  SuperExpr(Token keyword, Token method) : keyword_(keyword), method_(method) {}
+  LoxObject Accept(ExprVisitor& visitor) override {
+    return visitor.Visit(*this);
+  }
+
+  Token keyword_;
+  Token method_;
+};
+}  // namespace lox
+
+#endif  // LOX_AST_EXPR_H_

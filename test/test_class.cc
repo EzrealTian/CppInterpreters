@@ -2,11 +2,11 @@
 #include <string>
 #include <vector>
 
-#include "lox/core/scanner.h"
-#include "lox/core/parser.h"
-#include "lox/core/resolver.h"
-#include "lox/core/lox.h"
-#include "lox/ast/visitors/interpreter.h"
+#include "lox_interpreter/core/scanner.h"
+#include "lox_interpreter/core/parser.h"
+#include "lox_interpreter/core/resolver.h"
+#include "lox_interpreter/core/lox.h"
+#include "lox_interpreter/ast/visitors/interpreter.h"
 
 namespace lox {
 namespace test {

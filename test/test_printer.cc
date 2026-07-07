@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
-#include "lox/ast/expr.h"
-#include "lox/ast/visitors/printer.h"
-#include "lox/core/token.h"
-#include "lox/util/token_type.h"
+#include "lox_interpreter/ast/expr.h"
+#include "lox_interpreter/ast/visitors/printer.h"
+#include "lox_interpreter/core/token.h"
+#include "lox_interpreter/util/token_type.h"
 
 namespace lox {
 namespace test {

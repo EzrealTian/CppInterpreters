@@ -8,7 +8,7 @@ Out-of-source CMake build only. Commands must run inside `build/`.
 mkdir build && cd build && cmake .. && make
 ```
 
-- Targets: `cpplox` (interpreter), `loxtest` (test suite)
+- Targets: `lox_interpreter` (interpreter), `lox_bytecode` (bytecode interpreter), `loxtest` (test suite)
 - Build type: Release by default; `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug (`-O0 -g -Wall -Wextra -Wpedantic`)
 - `BUILD_TESTS=OFF` to skip tests: `cmake -DBUILD_TESTS=OFF ..`
 
@@ -39,18 +39,19 @@ Pipeline: `Source → Scanner → Parser → Resolver → Interpreter`
 
 | Directory | Purpose |
 |-----------|---------|
-| `lox/core/` | Scanner, Parser, Resolver, Token, Environment, Lox main class |
-| `lox/ast/` | Expression/Statement nodes, visitor interface, AST printer |
-| `lox/ast/visitors/` | Interpreter (tree-walk evaluator) |
-| `lox/util/` | LoxObject (variant), LoxCallable, LoxClass, LoxInstance, error types |
+| `lox_interpreter/core/` | Scanner, Parser, Resolver, Token, Environment, Lox main class |
+| `lox_interpreter/ast/` | Expression/Statement nodes, visitor interface, AST printer |
+| `lox_interpreter/ast/visitors/` | Interpreter (tree-walk evaluator) |
+| `lox_interpreter/util/` | LoxObject (variant), LoxCallable, LoxClass, LoxInstance, error types |
+| `lox_bytecode/` | Bytecode interpreter (work in progress) |
 | `test/` | Custom test runner (no framework) |
 
 ## Include paths
 
 Project root is the include directory. All includes use the form:
 ```cpp
-#include "lox/core/scanner.h"
-#include "lox/ast/expr.h"
+#include "lox_interpreter/core/scanner.h"
+#include "lox_interpreter/ast/expr.h"
 ```
 
 ## IDE

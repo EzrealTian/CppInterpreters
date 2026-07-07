@@ -3,9 +3,9 @@
 #include <vector>
 #include <cassert>
 
-#include "lox/core/scanner.h"
-#include "lox/core/token.h"
-#include "lox/util/token_type.h"
+#include "lox_interpreter/core/scanner.h"
+#include "lox_interpreter/core/token.h"
+#include "lox_interpreter/util/token_type.h"
 
 namespace lox {
 namespace test {

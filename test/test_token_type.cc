@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "lox/util/token_type.h"
+#include "lox_interpreter/util/token_type.h"
 
 namespace lox {
 namespace test {

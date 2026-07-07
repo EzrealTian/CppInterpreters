@@ -1,0 +1,78 @@
+#ifndef LOX_CORE_RESOLVER_H
+#define LOX_CORE_RESOLVER_H
+
+#include "lox_interpreter/ast/expr.h"
+#include "lox_interpreter/ast/stmt.h"
+#include "lox_interpreter/ast/visitors/interpreter.h"
+#include "lox_interpreter/util/lox_object.h"
+
+#include <vector>
+#include <unordered_map>
+
+namespace lox {
+
+class Resolver : public StmtVisitor, public ExprVisitor {
+ public:
+  Resolver(Interpreter& interpreter) : interpreter_(interpreter) {}
+
+  void Resolve(const std::vector<StmtPtr>& statements);
+
+  void Visit(BlockStmt& block_stmt) override;
+  void Visit(ExprStmt& expr_stmt) override;
+  void Visit(PrintStmt& print_stmt) override;
+  void Visit(VarStmt& var_stmt) override;
+  void Visit(IfStmt& if_stmt) override;
+  void Visit(WhileStmt& while_stmt) override;
+  void Visit(BreakStmt& break_stmt) override;
+  void Visit(FunctionStmt& function_stmt) override;
+  void Visit(ReturnStmt& return_stmt) override;
+  void Visit(ClassStmt& class_stmt) override;
+
+  LoxObject Visit(BinaryExpr& binary) override;
+  LoxObject Visit(UnaryExpr& unary) override;
+  LoxObject Visit(LiteralExpr& literal) override;
+  LoxObject Visit(GroupingExpr& grouping) override;
+  LoxObject Visit(VariableExpr& variable) override;
+  LoxObject Visit(AssignExpr& assign) override;
+  LoxObject Visit(LogicalExpr& logical) override;
+  LoxObject Visit(CallExpr& call) override;
+  LoxObject Visit(GetExpr& get) override;
+  LoxObject Visit(SetExpr& set) override;
+  LoxObject Visit(ThisExpr& this_expr) override;
+  LoxObject Visit(SuperExpr& super_expr) override;
+
+ private:
+  enum class FunctionType {
+    NONE,
+    FUNCTION,
+    INITIALIZER,
+    METHOD,
+  };
+
+  enum class ClassType {
+    NONE,
+    CLASS,
+    SUBCLASS,
+  };
+
+  void Resolve(const StmtPtr& statement);
+  void Resolve(const ExprPtr& expression);
+  void ResolveLocal(const Expr& expression, const Token& name);
+  void ResolveFunction(const FunctionStmt& function_stmt, FunctionType type);
+
+  void BeginScope();
+  void EndScope();
+
+  void Declare(const Token& name);
+  void Define(const Token& name);
+
+ private:
+  Interpreter& interpreter_;
+  std::vector<std::unordered_map<std::string, bool>> scopes_;
+  FunctionType current_function_ = FunctionType::NONE;
+  ClassType current_class_ = ClassType::NONE;
+};
+
+}  // namespace lox
+
+#endif  // LOX_CORE_RESOLVER_H
